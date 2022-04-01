@@ -4,7 +4,6 @@ enum ShaderType
     FragmentShader = WebGL2RenderingContext.FRAGMENT_SHADER,
 }
 
-/** A webgl shader. */
 class Shader
 {
     private previouslyBoundShader: Shader | null;
@@ -14,7 +13,6 @@ class Shader
     private readonly handle: WebGLProgram;
     private readonly uniformLocations: Map<string, WebGLUniformLocation> = new Map();
 
-    /** Constructs a new shader with vertexSrc and fragmentSrc. */
     public constructor(renderer: Renderer, vertSrc: string, fragSrc: string)
     {
         const gl = renderer.gl;
@@ -63,7 +61,6 @@ class Shader
         return handle;
     }
 
-    /** Bind this object. */
     public bind(): void
     {
         if(Shader.boundShader == this)
@@ -77,7 +74,6 @@ class Shader
         Shader.boundShader = this;
     }
 
-    /** Unbind this object and bind what was previously bound. */
     public unbind(): void
     {
         this.gl.useProgram(this.previouslyBoundShader?.handle ?? null);
@@ -86,7 +82,6 @@ class Shader
     }
 
     // Uniforms.
-    /** Gets the location of a uniform variable. */
     public getUniformLocation(name: string): WebGLUniformLocation
     {
         if(this.uniformLocations.has(name))
@@ -96,56 +91,48 @@ class Shader
         return this.gl.getUniformLocation(this.handle, name);
     }
 
-    /** Sets a uniform field on this shader with 1 float. */
     public setUniform1f(name: string, value1: number): void
     {
         const location: WebGLUniformLocation = this.getUniformLocation(name);
         this.gl.uniform1f(location, value1);
     }
 
-    /** Sets a uniform field on this shader with 1 int. */
     public setUniform1i(name: string, value1: number): void
     {
         const location: WebGLUniformLocation = this.getUniformLocation(name);
         this.gl.uniform1i(location, value1);
     }
 
-    /** Sets a uniform field on this shader with 2 floats. */
     public setUniform2f(name: string, value1: number, value2: number): void
     {
         const location: WebGLUniformLocation = this.getUniformLocation(name);
         this.gl.uniform2f(location, value1, value2);
     }
 
-    /** Sets a uniform field on this shader with 2 ints. */
     public setUniform2i(name: string, value1: number, value2: number): void
     {
         const location: WebGLUniformLocation = this.getUniformLocation(name);
         this.gl.uniform2i(location, value1, value2);
     }
 
-    /** Sets a uniform field on this shader with 3 floats. */
     public setUniform3f(name: string, value1: number, value2: number, value3: number): void
     {
         const location: WebGLUniformLocation = this.getUniformLocation(name);
         this.gl.uniform3f(location, value1, value2, value3);
     }
 
-    /** Sets a uniform field on this shader with 3 ints. */
     public setUniform3i(name: string, value1: number, value2: number, value3: number): void
     {
         const location: WebGLUniformLocation = this.getUniformLocation(name);
         this.gl.uniform3i(location, value1, value2, value3);
     }
 
-    /** Sets a uniform field on this shader with 4 floats. */
     public setUniform4f(name: string, value1: number, value2: number, value3: number, value4: number): void
     {
         const location: WebGLUniformLocation = this.getUniformLocation(name);
         this.gl.uniform4f(location, value1, value2, value3, value4);
     }
 
-    /** Sets a uniform field on this shader with 4 ints. */
     public setUniform4i(name: string, value1: number, value2: number, value3: number, value4: number): void
     {
         const location: WebGLUniformLocation = this.getUniformLocation(name);

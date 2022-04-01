@@ -14,9 +14,10 @@ class VertexArray
 
     private readonly gl: WebGL2RenderingContext;
     private readonly handle: WebGLVertexArrayObject;
+    private readonly shader: Shader;
     private attributeCount: number = 0;
 
-    public constructor(renderer: Renderer, elementBuffer: ElementBuffer)
+    public constructor(renderer: Renderer, elementBuffer: ElementBuffer, shader: Shader)
     {
         this.gl = renderer.gl;
 
@@ -28,7 +29,7 @@ class VertexArray
         elementBuffer.unbind();
     }
 
-    public addVertexAttributes(vertexBuffer: VertexBuffer, type: AttributeType, ...attributeCounts: number[])
+    public addVertexAttributes(vertexBuffer: VertexBuffer, type: AttributeType, ...attributes: {count: number, name: string}[])
     {
         const gl = this.gl;
 
@@ -59,13 +60,14 @@ class VertexArray
                 break;
         }
 
-        for(let i: number = 0; i < attributeCounts.length; i++)
+        for(let i: number = 0; i < attributes.length; i++)
         {
-            const count = attributeCounts[i];
-            gl.enableVertexAttribArray(this.attributeCount);
-            gl.vertexAttribPointer(this.attributeCount, count, type, false, 0, offset);
+            const attribute = attributes[i];
+            const uniformLocation: number = this.shader.getUniformLocation(attribute.name) as number;
+            gl.enableVertexAttribArray(uniformLocation);
+            gl.vertexAttribPointer(uniformLocation, attribute.count, type, false, 0, offset);
 
-            offset += typeSize * count;
+            offset += typeSize * attribute.count;
         }
 
         vertexBuffer.unbind();
