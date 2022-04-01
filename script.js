@@ -1,10 +1,6 @@
 function main() {
     const canvas = document.querySelector("canvas");
     const renderer = new Renderer(canvas);
-    const vbo = new VertexBuffer(renderer, new Float32Array([0, 0, 1, 1, 1, 0]));
-    const ebo = new ElementBuffer(renderer, new Uint16Array([0, 1, 2]));
-    const vao = new VertexArray(renderer, ebo);
-    vao.addVertexAttributes(vbo, AttributeType.float, 2);
     const shader = new Shader(renderer, `
         attribute vec2 aPosition;
 
@@ -20,11 +16,173 @@ function main() {
             gl_FragColor = vec4(1, 0, 1, 1);
         }
         `);
+    const vbo = new VertexBuffer(renderer, new Float32Array([0, 0, 1, 1, 1, 0]));
+    const ebo = new ElementBuffer(renderer, new Uint16Array([0, 1, 2]));
+    const vao = new VertexArray(renderer, ebo, shader);
+    vao.addVertexAttributes(vbo, AttributeType.float, { name: "aPosition", count: 2 });
     shader.bind();
     vao.bind();
     renderer.gl.drawElements(WebGL2RenderingContext.TRIANGLES, 3, WebGL2RenderingContext.UNSIGNED_SHORT, 0);
 }
 window.addEventListener("load", main);
+class Vector1 {
+    constructor(x) {
+        this.x = x;
+    }
+    lengthSqr() {
+        return Vector1.dot(this, this);
+    }
+    length() {
+        return Math.sqrt(this.lengthSqr());
+    }
+    static add(left, right) {
+        if (right instanceof Vector1) {
+            return new Vector1(left.x + right.x);
+        }
+        return new Vector1(left.x + right);
+    }
+    static sub(left, right) {
+        if (right instanceof Vector1) {
+            return new Vector1(left.x - right.x);
+        }
+        return new Vector1(left.x - right);
+    }
+    static mul(left, right) {
+        if (right instanceof Vector1) {
+            return new Vector1(left.x * right.x);
+        }
+        return new Vector1(left.x * right);
+    }
+    static dot(left, right) {
+        return left.x * right.x;
+    }
+    static proj(base, shade) {
+        return Vector1.mul(base, Vector1.mul(Vector1.mul(base, shade), 1 / base.lengthSqr()));
+    }
+    static angle(left, right) {
+        return Math.acos(Vector1.dot(left, right) / (left.length() * right.length()));
+    }
+}
+class Vector2 {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    lengthSqr() {
+        return Vector2.dot(this, this);
+    }
+    length() {
+        return Math.sqrt(this.lengthSqr());
+    }
+    static add(left, right) {
+        if (right instanceof Vector2) {
+            return new Vector2(left.x + right.x, left.y + right.y);
+        }
+        return new Vector2(left.x + right, left.y + right);
+    }
+    static sub(left, right) {
+        if (right instanceof Vector2) {
+            return new Vector2(left.x - right.x, left.y - right.y);
+        }
+        return new Vector2(left.x - right, left.y - right);
+    }
+    static mul(left, right) {
+        if (right instanceof Vector2) {
+            return new Vector2(left.x * right.x, left.y * right.y);
+        }
+        return new Vector2(left.x * right, left.y * right);
+    }
+    static dot(left, right) {
+        return left.x * right.x + left.y * right.y;
+    }
+    static proj(base, shade) {
+        return Vector2.mul(base, Vector2.mul(Vector2.mul(base, shade), 1 / base.lengthSqr()));
+    }
+    static angle(left, right) {
+        return Math.acos(Vector2.dot(left, right) / (left.length() * right.length()));
+    }
+}
+class Vector3 {
+    constructor(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+    lengthSqr() {
+        return Vector3.dot(this, this);
+    }
+    length() {
+        return Math.sqrt(this.lengthSqr());
+    }
+    static add(left, right) {
+        if (right instanceof Vector3) {
+            return new Vector3(left.x + right.x, left.y + right.y, left.z + right.z);
+        }
+        return new Vector3(left.x + right, left.y + right, left.z + right);
+    }
+    static sub(left, right) {
+        if (right instanceof Vector3) {
+            return new Vector3(left.x - right.x, left.y - right.y, left.z - right.z);
+        }
+        return new Vector3(left.x - right, left.y - right, left.z - right);
+    }
+    static mul(left, right) {
+        if (right instanceof Vector3) {
+            return new Vector3(left.x * right.x, left.y * right.y, left.z * right.z);
+        }
+        return new Vector3(left.x * right, left.y * right, left.z * right);
+    }
+    static dot(left, right) {
+        return left.x * right.x + left.y * right.y + left.z * right.z;
+    }
+    static proj(base, shade) {
+        return Vector3.mul(base, Vector3.mul(Vector3.mul(base, shade), 1 / base.lengthSqr()));
+    }
+    static angle(left, right) {
+        return Math.acos(Vector3.dot(left, right) / (left.length() * right.length()));
+    }
+}
+class Vector4 {
+    constructor(x, y, z, w) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
+    }
+    lengthSqr() {
+        return Vector4.dot(this, this);
+    }
+    length() {
+        return Math.sqrt(this.lengthSqr());
+    }
+    static add(left, right) {
+        if (right instanceof Vector4) {
+            return new Vector4(left.x + right.x, left.y + right.y, left.z + right.z, left.w + right.w);
+        }
+        return new Vector4(left.x + right, left.y + right, left.z + right, left.w + right);
+    }
+    static sub(left, right) {
+        if (right instanceof Vector4) {
+            return new Vector4(left.x - right.x, left.y - right.y, left.z - right.z, left.w - right.w);
+        }
+        return new Vector4(left.x - right, left.y - right, left.z - right, left.w - right);
+    }
+    static mul(left, right) {
+        if (right instanceof Vector4) {
+            return new Vector4(left.x * right.x, left.y * right.y, left.z * right.z, left.w * right.w);
+        }
+        return new Vector4(left.x * right, left.y * right, left.z * right, left.w * right);
+    }
+    static dot(left, right) {
+        return left.x * right.x + left.y * right.y + left.z * right.z + right.w * left.w;
+    }
+    static proj(base, shade) {
+        return Vector4.mul(base, Vector4.mul(Vector4.mul(base, shade), 1 / base.lengthSqr()));
+    }
+    static angle(left, right) {
+        return Math.acos(Vector4.dot(left, right) / (left.length() * right.length()));
+    }
+}
 var BufferTarget;
 (function (BufferTarget) {
     BufferTarget[BufferTarget["VertexBuffer"] = WebGL2RenderingContext.ARRAY_BUFFER] = "VertexBuffer";
@@ -197,16 +355,16 @@ var AttributeType;
     AttributeType[AttributeType["halfFloat"] = WebGL2RenderingContext.HALF_FLOAT] = "halfFloat";
 })(AttributeType || (AttributeType = {}));
 class VertexArray {
-    constructor(renderer, elementBuffer) {
-        this.attributeCount = 0;
+    constructor(renderer, elementBuffer, shader) {
         this.gl = renderer.gl;
+        this.shader = shader;
         this.handle = this.gl.createVertexArray();
         this.bind();
         elementBuffer.bind();
         this.unbind();
         elementBuffer.unbind();
     }
-    addVertexAttributes(vertexBuffer, type, ...attributeCounts) {
+    addVertexAttributes(vertexBuffer, type, ...attributes) {
         const gl = this.gl;
         this.bind();
         vertexBuffer.bind();
@@ -232,11 +390,12 @@ class VertexArray {
                 console.error(type, " is not a valide attribute type.");
                 break;
         }
-        for (let i = 0; i < attributeCounts.length; i++) {
-            const count = attributeCounts[i];
-            gl.enableVertexAttribArray(this.attributeCount);
-            gl.vertexAttribPointer(this.attributeCount, count, type, false, 0, offset);
-            offset += typeSize * count;
+        for (let i = 0; i < attributes.length; i++) {
+            const attribute = attributes[i];
+            const uniformLocation = this.shader.getUniformLocation(attribute.name);
+            gl.enableVertexAttribArray(uniformLocation);
+            gl.vertexAttribPointer(uniformLocation, attribute.count, type, false, 0, offset);
+            offset += typeSize * attribute.count;
         }
         vertexBuffer.unbind();
         this.unbind();
