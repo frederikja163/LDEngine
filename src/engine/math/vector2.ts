@@ -9,6 +9,11 @@ class Vector2
         this.y = y;
     }
 
+    public copy(): Vector2
+    {
+        return new Vector2(this.x, this.y);
+    }
+
     public lengthSqr(): number
     {
         return Vector2.dot(this, this);
@@ -17,6 +22,16 @@ class Vector2
     public length(): number
     {
         return Math.sqrt(this.lengthSqr());
+    }
+
+    public orthorgonal(): Vector2
+    {
+        return new Vector2(-this.y, this.x);
+    }
+
+    public normalized(): Vector2
+    {
+        return Vector2.mul(this, 1 / this.length());
     }
 
     public static add(left: Vector2, right: Vector2): Vector2;

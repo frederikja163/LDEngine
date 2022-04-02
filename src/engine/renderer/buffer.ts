@@ -25,6 +25,7 @@ class Buffer
     private readonly gl: WebGL2RenderingContext;
     private readonly handle: WebGLBuffer;
     private readonly bufferTarget: BufferTarget;
+    private bufferSource: BufferSource;
 
     public constructor(renderer: Renderer, bufferTarget: BufferTarget)
     {
@@ -41,6 +42,12 @@ class Buffer
     public setData(data: BufferSource, usage: BufferUsageHint)
     {
         this.gl.bufferData(this.bufferTarget, data, usage);
+        this.bufferSource = data;
+    }
+
+    public getData(): BufferSource
+    {
+        return this.bufferSource;
     }
 
     public bind(): void

@@ -81,8 +81,13 @@ class Shader
         Shader.boundShader = this.previouslyBoundShader;
     }
 
+    public getAttributeLocation(name: string): number
+    {
+        return this.gl.getAttribLocation(this.handle, name);
+    }
+
     // Uniforms.
-    public getUniformLocation(name: string): WebGLUniformLocation
+    private getUniformLocation(name: string): WebGLUniformLocation
     {
         if(this.uniformLocations.has(name))
         {
