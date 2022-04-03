@@ -6,13 +6,33 @@
     <meta charset="UTF-8">
     <title>TODO: Title</title>
 
+    <link rel="stylesheet" href="styles/font.css">
     <link rel="stylesheet" href="styles/site.css">
     <link rel="stylesheet" href="styles/tooltip.css">
+    <link rel="stylesheet" href="styles/license.css">
+    <link rel="stylesheet" href="styles/hint.css">
 </head>
 
 <body oncontextmenu="return false">
     <script src="script.js"></script>
+    <div id="license">
+        <div>
+            <h1>Id</h1>
+            <p id="name">Name: Simon</p>
+            <p id="score">Age: 50</p>
+            <p id="highscore">High score: 100</p>
+        </div>
+        <div id="photo">
+            <img src="images/character.png">
+        </div>
+    </div>
+    <div id="hint">
+        Hit that little bugger!
+    </div>
     <canvas style="width: 100vh;"></canvas>
+    <audio autoplay>
+        <source src="sounds/background music.wav" type="audio/wav">
+    </audio>
 </body>
 
 </html>

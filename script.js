@@ -654,7 +654,7 @@ var MuscleName;
 })(MuscleName || (MuscleName = {}));
 function createGamestate() {
     return {
-        debug: true,
+        debug: false,
         alive: true,
         virusState: { src: "images/virus.png", speed: 0.0001, size: new Vector2(0.02, 0.02) },
         virus: [],
@@ -687,22 +687,22 @@ function createGamestate() {
             {
                 startMuscle: MuscleName.rightCalf,
                 stopMuscle: MuscleName.rightThigh,
-                thickness: 0.012,
+                thickness: 0.008,
             },
             {
                 startMuscle: MuscleName.rightThigh,
                 stopMuscle: MuscleName.abs,
-                thickness: 0.012,
+                thickness: 0.01,
             },
             {
                 startMuscle: MuscleName.leftCalf,
                 stopMuscle: MuscleName.leftThigh,
-                thickness: 0.012,
+                thickness: 0.008,
             },
             {
                 startMuscle: MuscleName.leftThigh,
                 stopMuscle: MuscleName.abs,
-                thickness: 0.012,
+                thickness: 0.01,
             },
             {
                 startMuscle: MuscleName.abs,
@@ -883,21 +883,38 @@ class MuscleRenderer {
 }
 class RenderingSystem {
     constructor(canvas, state) {
+        this.isOverlayActive = false;
         this.renderer = new Renderer(canvas);
         this.state = state;
-        this.renderers = [
+        this.alwaysOn = [
             new BodyRenderer(this.renderer, state),
+        ];
+        this.renderers = [
             new MuscleRenderer(this.renderer, state),
             new BloodVeinRenderer(this.renderer, state),
             new VirusRenderer(this.renderer, state),
         ];
-        requestAnimationFrame(() => this.redraw());
+        canvas.addEventListener("mouseenter", (ev) => {
+            this.isOverlayActive = true;
+        });
+        canvas.addEventListener("mouseleave", (ev) => {
+            this.isOverlayActive = false;
+        });
+        setTimeout(() => {
+            requestAnimationFrame(() => this.redraw());
+        }, 100);
     }
     redraw() {
         this.renderer.clear();
-        for (let i = 0; i < this.renderers.length; i++) {
-            const renderer = this.renderers[i];
+        for (let i = 0; i < this.alwaysOn.length; i++) {
+            const renderer = this.alwaysOn[i];
             renderer.redraw();
+        }
+        if (this.isOverlayActive) {
+            for (let i = 0; i < this.renderers.length; i++) {
+                const renderer = this.renderers[i];
+                renderer.redraw();
+            }
         }
         if (this.state.alive) {
             requestAnimationFrame(() => this.redraw());

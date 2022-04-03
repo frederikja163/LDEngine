@@ -34,7 +34,7 @@ enum MuscleName
 function createGamestate(): GameState
 {
     return {
-        debug: true,
+        debug: false,
         alive: true,
         virusState: {src: "images/virus.png", speed: 0.0001, size: new Vector2(0.02, 0.02)},
         virus: [],
@@ -67,22 +67,22 @@ function createGamestate(): GameState
             {
                 startMuscle: MuscleName.rightCalf,
                 stopMuscle: MuscleName.rightThigh,
-                thickness: 0.012,
+                thickness: 0.008,
             },
             {
                 startMuscle: MuscleName.rightThigh,
                 stopMuscle: MuscleName.abs,
-                thickness: 0.012,
+                thickness: 0.01,
             },
             {
                 startMuscle: MuscleName.leftCalf,
                 stopMuscle: MuscleName.leftThigh,
-                thickness: 0.012,
+                thickness: 0.008,
             },
             {
                 startMuscle: MuscleName.leftThigh,
                 stopMuscle: MuscleName.abs,
-                thickness: 0.012,
+                thickness: 0.01,
             },
             {
                 startMuscle: MuscleName.abs,
