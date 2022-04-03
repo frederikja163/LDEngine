@@ -23,6 +23,7 @@ class VirusUpdater
 
     private onClick(ev: MouseEvent): void
     {
+        if(!this.state.alive) return;
         const mouse = this.mousePos;
 
         let closestVirus: {distanceSqr: number, index: number} = {distanceSqr: 10000, index: -1};
@@ -39,6 +40,7 @@ class VirusUpdater
         if(closestVirus.distanceSqr < this.state.virusState.size.lengthSqr())
         {
             this.state.virus.splice(closestVirus.index, 1);
+            playSound("sounds/virus squish.wav");
         }
     }
 

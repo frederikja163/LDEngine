@@ -1,5 +1,5 @@
 type Muscle = {name: MuscleName, pos: Vector2, size: number, infected: boolean}
-type BodyState = {src: string, size: Vector2};
+type BodyState = {src: string, size: Vector2, name: string, age: number};
 type BloodVein = {startMuscle: MuscleName, stopMuscle: MuscleName, thickness: number}
 // TODO: Maybe allow wounds to connect to other wounds?
 type Wound = {pos: Vector2, connection: MuscleName};
@@ -36,6 +36,12 @@ function createGamestate(): GameState
     return {
         debug: false,
         alive: true,
+        body: {
+            src: "images/character.png",
+            size: new Vector2(0.95, 0.95),
+            name: selectRandom(["Simon", "John", "Jack", "Bob", "Bob", "Bob", "Steve", "Carl", "Adam", "Joe", "Brian"]),
+            age: Math.floor(Math.random() * 10 + 45),
+        },
         virusState: {src: "images/virus.png", speed: 0.0001, size: new Vector2(0.02, 0.02)},
         virus: [],
         bloodVeins: [
@@ -164,6 +170,5 @@ function createGamestate(): GameState
                 infected: false,
             },
         ],
-        body: {src: "images/character.png", size: new Vector2(0.95, 0.95)},
     };
 }

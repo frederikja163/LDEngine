@@ -623,6 +623,12 @@ class VertexArray {
         VertexArray.boundVertexArray = this.previouslyBoundVertexArray;
     }
 }
+function eventTime(age) {
+    return 1 / age * 500000;
+}
+function woundCount(age) {
+    return random(age / 10, age / 10 + 2);
+}
 var EventTypes;
 (function (EventTypes) {
     EventTypes["infected"] = "infected";
@@ -656,6 +662,12 @@ function createGamestate() {
     return {
         debug: false,
         alive: true,
+        body: {
+            src: "images/character.png",
+            size: new Vector2(0.95, 0.95),
+            name: selectRandom(["Simon", "John", "Jack", "Bob", "Bob", "Bob", "Steve", "Carl", "Adam", "Joe", "Brian"]),
+            age: Math.floor(Math.random() * 10 + 45),
+        },
         virusState: { src: "images/virus.png", speed: 0.0001, size: new Vector2(0.02, 0.02) },
         virus: [],
         bloodVeins: [
@@ -784,7 +796,6 @@ function createGamestate() {
                 infected: false,
             },
         ],
-        body: { src: "images/character.png", size: new Vector2(0.95, 0.95) },
     };
 }
 function getVeinMuscle(state, name) {
@@ -814,6 +825,48 @@ function getRandomNeighboor(state, muscle) {
 }
 function getMousePosition(mouseX, mouseY) {
     return new Vector2((mouseX / window.innerHeight) * 2 - 1, (-mouseY / window.innerHeight) * 2 + 1);
+}
+function selectRandom(obj) {
+    const index = Math.floor(Math.random() * obj.length);
+    return obj[index];
+}
+const soundElements = [];
+function playSound(sound) {
+    let audioElem = soundElements[0];
+    if (!audioElem || audioElem.duration > 0 && !audioElem.paused) {
+        audioElem = document.createElement("audio");
+        document.body.appendChild(audioElem);
+    }
+    else {
+        soundElements.pop();
+    }
+    audioElem.src = sound;
+    audioElem.play();
+    soundElements.push(audioElem);
+}
+function random(min, max) {
+    return Math.random() * (max - min) + min;
+}
+function setCookie(cname, cvalue, exdays) {
+    const d = new Date();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    let expires = "expires=" + d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
 }
 class BloodVeinRenderer {
     constructor(renderer, state) {
@@ -916,8 +969,8 @@ class RenderingSystem {
                 renderer.redraw();
             }
         }
+        requestAnimationFrame(() => this.redraw());
         if (this.state.alive) {
-            requestAnimationFrame(() => this.redraw());
         }
     }
 }
@@ -958,6 +1011,9 @@ class MuscleToolTipUpdater {
         tooltipElem.id = "tooltip";
         tooltipElem.style.display = "none";
         document.body.appendChild(tooltipElem);
+        window.addEventListener("click", () => {
+            document.getSelection().removeAllRanges();
+        });
         window.addEventListener("mousemove", (ev) => {
             const muscles = state.muscles;
             const mousePos = getMousePosition(ev.x, ev.y);
@@ -996,20 +1052,43 @@ class MuscleUpdater {
 }
 class ScoreUpdater {
     constructor(state, events) {
+        this.highscore = 0;
         this.state = state;
+        const highscoreCookie = getCookie("highscore");
+        if (highscoreCookie === "") {
+            this.highscore = 0;
+        }
+        else {
+            this.highscore = parseInt(highscoreCookie);
+        }
+        document.querySelector("#name").textContent = "Name: " + state.body.name;
+        document.querySelector("#highscore").textContent = "Highscore: " + this.highscore;
+        this.increaseAge();
         events.addEventListener(EventTypes.infected, (e) => this.onInfected(e.detail));
     }
     onInfected(muscle) {
         if (muscle.name === MuscleName.brain) {
             this.state.alive = false;
+            if (this.state.body.age > this.highscore) {
+                setCookie("highscore", this.state.body.age.toString(), 100);
+            }
         }
+    }
+    increaseAge() {
+        if (!this.state.alive)
+            return;
+        this.state.body.age += 1;
+        document.querySelector("#age").textContent = "Age: " + this.state.body.age;
+        setTimeout(() => this.increaseAge(), 30000);
     }
 }
 class UpdateSystem {
     constructor(state, events) {
+        this.state = state;
+        this.woundUpdater = new WoundUpdater(state);
         this.updaters = [
             new MuscleToolTipUpdater(state),
-            new WoundUpdater(state),
+            this.woundUpdater,
             new VirusUpdater(state, events),
             new MuscleUpdater(state, events),
             new ScoreUpdater(state, events),
@@ -1017,6 +1096,14 @@ class UpdateSystem {
         if (state.debug) {
             this.updaters.push(new DebugUpdater());
         }
+    }
+    spawnEvent() {
+        for (let i = 0; i < woundCount(this.state.body.age); i++) {
+            this.woundUpdater.placeWound();
+        }
+        setTimeout(() => {
+            this.spawnEvent();
+        }, eventTime(this.state.body.age));
     }
 }
 class VirusUpdater {
@@ -1032,6 +1119,8 @@ class VirusUpdater {
         this.mousePos = getMousePosition(ev.x, ev.y);
     }
     onClick(ev) {
+        if (!this.state.alive)
+            return;
         const mouse = this.mousePos;
         let closestVirus = { distanceSqr: 10000, index: -1 };
         for (let i = 0; i < this.state.virus.length; i++) {
@@ -1043,6 +1132,7 @@ class VirusUpdater {
         }
         if (closestVirus.distanceSqr < this.state.virusState.size.lengthSqr()) {
             this.state.virus.splice(closestVirus.index, 1);
+            playSound("sounds/virus squish.wav");
         }
     }
     updateVirus(time) {
@@ -1104,7 +1194,7 @@ class WoundUpdater {
             randomValue -= 1 - vein.thickness;
             if (randomValue <= 0) {
                 const angle = Math.random() * Math.PI * 2;
-                const len = Math.random() * 0.05 + 0.1;
+                const len = Math.random() * 0.05 + 0.05;
                 const muscle = getVeinMuscle(this.state, vein.startMuscle);
                 const pos = Vector2.add(muscle.pos, new Vector2(Math.cos(angle) * len, Math.sin(angle) * len));
                 const wound = { pos: pos, connection: vein.startMuscle };
@@ -1116,9 +1206,11 @@ class WoundUpdater {
         }
     }
     spawnVirus(wound) {
+        if (!this.state.alive)
+            return;
         const muscle = getVeinMuscle(this.state, wound.connection);
         this.state.virus.push({ startPos: wound.pos, endPos: muscle.pos, position: 0, endMuscle: muscle.name });
-        setTimeout(() => this.spawnVirus(wound), Math.random() * 7000 + 3000);
+        setTimeout(() => this.spawnVirus(wound), Math.random() * 3000 + 2000);
     }
 }
 //# sourceMappingURL=script.js.map

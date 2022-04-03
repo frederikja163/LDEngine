@@ -57,9 +57,9 @@ class RenderingSystem
                 renderer.redraw();
             }
         }
+        requestAnimationFrame(() => this.redraw());
         if(this.state.alive)
         {
-            requestAnimationFrame(() => this.redraw());
         }
     }
 }

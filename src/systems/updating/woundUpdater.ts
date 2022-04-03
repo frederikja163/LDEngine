@@ -27,7 +27,7 @@ class WoundUpdater
             if(randomValue <= 0)
             {
                 const angle = Math.random() * Math.PI * 2;
-                const len = Math.random() * 0.05 + 0.1;
+                const len = Math.random() * 0.05 + 0.05;
                 const muscle: Muscle = getVeinMuscle(this.state, vein.startMuscle);
                 const pos = Vector2.add(muscle.pos, new Vector2(Math.cos(angle) * len, Math.sin(angle) * len));
 
@@ -40,10 +40,11 @@ class WoundUpdater
         }
     }
 
-    public spawnVirus(wound: Wound): void
+    private spawnVirus(wound: Wound): void
     {
+        if(!this.state.alive) return;
         const muscle: Muscle = getVeinMuscle(this.state, wound.connection);
         this.state.virus.push({startPos: wound.pos, endPos: muscle.pos, position: 0, endMuscle: muscle.name});
-        setTimeout(() => this.spawnVirus(wound), Math.random() * 7000 + 3000);
+        setTimeout(() => this.spawnVirus(wound), Math.random() * 3000 + 2000);
     }
 }

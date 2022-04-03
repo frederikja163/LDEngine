@@ -7,6 +7,11 @@ class MuscleToolTipUpdater
         tooltipElem.style.display = "none";
         document.body.appendChild(tooltipElem);
 
+        window.addEventListener("click", () =>
+        {
+            document.getSelection().removeAllRanges();
+        })
+
         window.addEventListener("mousemove", (ev: MouseEvent) =>
         {
             const muscles: Muscle[] = state.muscles;

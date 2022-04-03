@@ -1,3 +1,14 @@
+/*
+TODO: idle animation
+Difficulty selection
+eye animation
+mouth animation
+
+
+difficulty scaling
+hint giving
+*/
+
 function main(): void
 {
     const canvas: HTMLCanvasElement = document.querySelector("canvas");
