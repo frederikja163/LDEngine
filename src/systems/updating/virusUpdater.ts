@@ -45,11 +45,19 @@ class VirusUpdater
 
             if(virus.position >= 1)
             {
+                const muscle: Muscle = getVeinMuscle(this.state, virus.endMuscle);
                 if(Math.random() >= 0.5)
                 {
-                    const muscle: Muscle = getVeinMuscle(this.state, virus.endMuscle);
                     muscle.infected = true;
                     this.state.virus.splice(i, 1);
+                }
+                else
+                {
+                    const endMuscle: Muscle = getRandomNeighboor(this.state, muscle);
+                    virus.endPos = endMuscle.pos;
+                    virus.endMuscle = endMuscle.name;
+                    virus.position = 0;
+                    virus.startPos = muscle.pos;
                 }
             }
         }

@@ -8,7 +8,7 @@ class MuscleUpdater
         this.state = state;
 
         this.infectedMuscles = [];
-        setTimeout(() =>
+        setInterval(() =>
         {
             // Add newly infected muscles to the infected group.
             for(let i: number = 0; i < this.state.muscles.length; i++)
@@ -17,9 +17,16 @@ class MuscleUpdater
                 if(muscle.infected && !this.infectedMuscles.find(m => m.name === muscle.name))
                 {
                     this.infectedMuscles.push(muscle);
-                    spawnVirus(this.state, muscle.pos, muscle.name, 3000, 10000);
+                    this.spawnVirus(muscle);
                 }
             }
         }, 1000);
+    }
+
+    public spawnVirus(muscle: Muscle): void
+    {
+        const endMuscle = getRandomNeighboor(this.state, muscle);
+        this.state.virus.push({startPos: muscle.pos, endPos: endMuscle.pos, position: 0, endMuscle: endMuscle.name});
+        setTimeout(() => this.spawnVirus(muscle), Math.random() * 7000 + 3000);
     }
 }

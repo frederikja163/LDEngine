@@ -32,10 +32,17 @@ class WoundUpdater
 
                 const wound: Wound = {pos: pos, connection: vein.startMuscle};
                 this.state.wounds.push(wound);
-                spawnVirus(this.state, wound.pos, wound.connection, 3000, 10000);
+                setTimeout(() => this.spawnVirus(wound), Math.random() * 1000 + 2000);
                 setTimeout(() => this.placeWound(), Math.random() * 7000 + 3000);
                 return;
             }
         }
+    }
+
+    public spawnVirus(wound: Wound): void
+    {
+        const muscle: Muscle = getVeinMuscle(this.state, wound.connection);
+        this.state.virus.push({startPos: wound.pos, endPos: muscle.pos, position: 0, endMuscle: muscle.name});
+        setTimeout(() => this.spawnVirus(wound), Math.random() * 7000 + 3000);
     }
 }

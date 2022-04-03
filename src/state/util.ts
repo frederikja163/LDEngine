@@ -16,12 +16,21 @@ function virusGetPosition(virus: Virus): Vector2
     return Vector2.add(virus.startPos, Vector2.mul(Vector2.sub(virus.endPos, virus.startPos), virus.position));
 }
 
-function spawnVirus(state: GameState, pos: Vector2, muscleName: MuscleName, minSpawnTime: number, maxSpawnTime: number): void
+function getRandomNeighboor(state: GameState, muscle: Muscle)
 {
-    setTimeout(() =>
+    const pair: Muscle[] = [];
+    for(let i: number = 0; i < state.bloodVeins.length; i++)
     {
-        const muscle: Muscle = getVeinMuscle(state, muscleName);
-        state.virus.push({startPos: pos, endPos: muscle.pos, position: 0, endMuscle: muscle.name});
-        spawnVirus(state, pos, muscleName, minSpawnTime, maxSpawnTime);
-    }, Math.random() * (maxSpawnTime - minSpawnTime) + minSpawnTime);
+        const vein: BloodVein = state.bloodVeins[i];
+        if(vein.startMuscle === muscle.name)
+        {
+            pair.push(getVeinMuscle(state, vein.stopMuscle));
+        }
+        else if(vein.stopMuscle === muscle.name)
+        {
+            pair.push(getVeinMuscle(state, vein.startMuscle));
+        }
+    }
+    const index: number = Math.floor(Math.random() * pair.length);
+    return pair[index];
 }

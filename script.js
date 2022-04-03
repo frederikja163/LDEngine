@@ -728,12 +728,19 @@ function getVeinMuscle(state, name) {
 function virusGetPosition(virus) {
     return Vector2.add(virus.startPos, Vector2.mul(Vector2.sub(virus.endPos, virus.startPos), virus.position));
 }
-function spawnVirus(state, pos, muscleName, minSpawnTime, maxSpawnTime) {
-    setTimeout(() => {
-        const muscle = getVeinMuscle(state, muscleName);
-        state.virus.push({ startPos: pos, endPos: muscle.pos, position: 0, endMuscle: muscle.name });
-        spawnVirus(state, pos, muscleName, minSpawnTime, maxSpawnTime);
-    }, Math.random() * (maxSpawnTime - minSpawnTime) + minSpawnTime);
+function getRandomNeighboor(state, muscle) {
+    const pair = [];
+    for (let i = 0; i < state.bloodVeins.length; i++) {
+        const vein = state.bloodVeins[i];
+        if (vein.startMuscle === muscle.name) {
+            pair.push(getVeinMuscle(state, vein.stopMuscle));
+        }
+        else if (vein.stopMuscle === muscle.name) {
+            pair.push(getVeinMuscle(state, vein.startMuscle));
+        }
+    }
+    const index = Math.floor(Math.random() * pair.length);
+    return pair[index];
 }
 class BloodVeinRenderer {
     constructor(renderer, state) {
@@ -883,15 +890,20 @@ class MuscleUpdater {
     constructor(state) {
         this.state = state;
         this.infectedMuscles = [];
-        setTimeout(() => {
+        setInterval(() => {
             for (let i = 0; i < this.state.muscles.length; i++) {
                 const muscle = this.state.muscles[i];
                 if (muscle.infected && !this.infectedMuscles.find(m => m.name === muscle.name)) {
                     this.infectedMuscles.push(muscle);
-                    spawnVirus(this.state, muscle.pos, muscle.name, 3000, 10000);
+                    this.spawnVirus(muscle);
                 }
             }
         }, 1000);
+    }
+    spawnVirus(muscle) {
+        const endMuscle = getRandomNeighboor(this.state, muscle);
+        this.state.virus.push({ startPos: muscle.pos, endPos: endMuscle.pos, position: 0, endMuscle: endMuscle.name });
+        setTimeout(() => this.spawnVirus(muscle), Math.random() * 7000 + 3000);
     }
 }
 class UpdateSystem {
@@ -900,6 +912,7 @@ class UpdateSystem {
             new MuscleToolTipUpdater(state),
             new WoundUpdater(state),
             new VirusUpdater(state),
+            new MuscleUpdater(state)
         ];
         if (state.debug) {
             this.updaters.push(new DebugUpdater());
@@ -934,10 +947,17 @@ class VirusUpdater {
             const virus = this.state.virus[i];
             virus.position += deltaTime * this.state.virusState.speed;
             if (virus.position >= 1) {
+                const muscle = getVeinMuscle(this.state, virus.endMuscle);
                 if (Math.random() >= 0.5) {
-                    const muscle = getVeinMuscle(this.state, virus.endMuscle);
                     muscle.infected = true;
                     this.state.virus.splice(i, 1);
+                }
+                else {
+                    const endMuscle = getRandomNeighboor(this.state, muscle);
+                    virus.endPos = endMuscle.pos;
+                    virus.endMuscle = endMuscle.name;
+                    virus.position = 0;
+                    virus.startPos = muscle.pos;
                 }
             }
         }
@@ -967,11 +987,16 @@ class WoundUpdater {
                 const pos = Vector2.add(muscle.pos, new Vector2(Math.cos(angle) * len, Math.sin(angle) * len));
                 const wound = { pos: pos, connection: vein.startMuscle };
                 this.state.wounds.push(wound);
-                spawnVirus(this.state, wound.pos, wound.connection, 3000, 10000);
+                setTimeout(() => this.spawnVirus(wound), Math.random() * 1000 + 2000);
                 setTimeout(() => this.placeWound(), Math.random() * 7000 + 3000);
                 return;
             }
         }
+    }
+    spawnVirus(wound) {
+        const muscle = getVeinMuscle(this.state, wound.connection);
+        this.state.virus.push({ startPos: wound.pos, endPos: muscle.pos, position: 0, endMuscle: muscle.name });
+        setTimeout(() => this.spawnVirus(wound), Math.random() * 7000 + 3000);
     }
 }
 //# sourceMappingURL=script.js.map

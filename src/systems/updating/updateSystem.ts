@@ -8,6 +8,7 @@ class UpdateSystem
             new MuscleToolTipUpdater(state),
             new WoundUpdater(state),
             new VirusUpdater(state),
+            new MuscleUpdater(state)
         ];
 
         if(state.debug)
