@@ -35,7 +35,6 @@ class Hint
             "View your powerups on the right of the screen.",
             "Press Q to heal your wounds.",
             "W will disinfect a muscle.",
-            "Hit that little bugger!",
             "The longer the game goes on the older i get",
             "When i get older you grow weaker",
             "Powerups gets slower as i age",
@@ -73,6 +72,13 @@ class Hint
         {
             this.hideHint();
         }, 5000);
+    }
+
+    public displayLastHint(): void
+    {
+
+        this.hintElem.style.display = "";
+        this.hintElem.textContent = "Press F5 to try again.";
     }
 
     public hideHint(): void

@@ -25,10 +25,7 @@ class UpdateSystem
             this.updaters.push(new DebugUpdater());
         }
 
-        setTimeout(() =>
-        {
-            this.spawnEvent();
-        }, 1000);
+        this.spawnEvent();
     }
 
     private spawnEvent()
@@ -41,7 +38,11 @@ class UpdateSystem
 
         setTimeout(() =>
         {
-            if(!this.state.alive) return;
+            if(!this.state.alive)
+            {
+                this.hint.displayLastHint();
+                return;
+            }
             this.spawnEvent();
         }, eventTime(this.state.body.age));
 

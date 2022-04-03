@@ -31,7 +31,6 @@ function main(): void
         }
         const updateSystem: UpdateSystem = new UpdateSystem(state, events);
         started = true;
-
     })
 }
 
