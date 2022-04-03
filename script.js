@@ -1,3 +1,52 @@
+class Hint {
+    constructor() {
+        this.hintElem = document.body.querySelector("#hint");
+    }
+    displayMessage() {
+        this.hintElem.style.display = "";
+        this.hintElem.textContent = selectRandom([
+            "Be gone thot.",
+            "Good job!",
+            "I hate viruses.",
+            "I wonder how long i can stay alive for.",
+            "Woah, you scared me there.",
+            "Oh, hello, have you been there the whole time?",
+            "My id is fake, my actual name is Frederik",
+            "What's a ludum dare?",
+        ]);
+        setTimeout(() => {
+            this.hideHint();
+        }, 5000);
+    }
+    displayHint() {
+        this.hintElem.style.display = "";
+        this.hintElem.textContent = selectRandom(["Hover over me for x-ray vision.",
+            "Hit that little bugger!",
+            "Click the viruses to fend them off!",
+        ]);
+        setTimeout(() => {
+            this.hideHint();
+        }, 5000);
+    }
+    displayEvent() {
+        this.hintElem.style.display = "";
+        this.hintElem.textContent = selectRandom(["I have fallen and can't get up!",
+            "Ouch that one hurt!",
+            "I now have a few extra wounds for my collection.",
+            "Why does this keep happening?",
+            "Why me?",
+            "Stop pushing me!",
+            "I wish the russians would end the war soon!",
+            "Life hurts"
+        ]);
+        setTimeout(() => {
+            this.hideHint();
+        }, 5000);
+    }
+    hideHint() {
+        this.hintElem.style.display = "none";
+    }
+}
 function main() {
     const canvas = document.querySelector("canvas");
     const events = new Events();
@@ -624,7 +673,7 @@ class VertexArray {
     }
 }
 function eventTime(age) {
-    return 1 / age * 500000;
+    return 1 / age * 1000000;
 }
 function woundCount(age) {
     return random(age / 10, age / 10 + 2);
@@ -1085,6 +1134,7 @@ class ScoreUpdater {
 class UpdateSystem {
     constructor(state, events) {
         this.state = state;
+        this.hint = new Hint();
         this.woundUpdater = new WoundUpdater(state);
         this.updaters = [
             new MuscleToolTipUpdater(state),
@@ -1096,14 +1146,30 @@ class UpdateSystem {
         if (state.debug) {
             this.updaters.push(new DebugUpdater());
         }
+        setTimeout(() => {
+            this.spawnEvent();
+        }, 1000);
     }
     spawnEvent() {
         for (let i = 0; i < woundCount(this.state.body.age); i++) {
             this.woundUpdater.placeWound();
         }
+        this.hint.displayEvent();
         setTimeout(() => {
+            if (!this.state.alive)
+                return;
             this.spawnEvent();
         }, eventTime(this.state.body.age));
+        setTimeout(() => {
+            if (!this.state.alive)
+                return;
+            if (this.state.body.age >= 60) {
+                this.hint.displayMessage();
+            }
+            else {
+                this.hint.displayHint();
+            }
+        }, eventTime(this.state.body.age) / 2);
     }
 }
 class VirusUpdater {
@@ -1178,7 +1244,6 @@ class VirusUpdater {
 class WoundUpdater {
     constructor(state) {
         this.state = state;
-        setTimeout(() => this.placeWound(), 1000);
     }
     placeWound() {
         if (!this.state.alive)
@@ -1200,7 +1265,6 @@ class WoundUpdater {
                 const wound = { pos: pos, connection: vein.startMuscle };
                 this.state.wounds.push(wound);
                 setTimeout(() => this.spawnVirus(wound), Math.random() * 1000 + 2000);
-                setTimeout(() => this.placeWound(), Math.random() * 7000 + 3000);
                 return;
             }
         }

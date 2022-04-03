@@ -3,10 +3,12 @@ class UpdateSystem
     private readonly updaters: object[];
     private readonly state: GameState;
     private readonly woundUpdater: WoundUpdater;
+    private readonly hint: Hint;
 
     public constructor(state: GameState, events: Events)
     {
         this.state = state;
+        this.hint = new Hint();
 
         this.woundUpdater = new WoundUpdater(state);
         this.updaters = [
@@ -22,10 +24,10 @@ class UpdateSystem
             this.updaters.push(new DebugUpdater());
         }
 
-        // setTimeout(() =>
-        // {
-        //     this.spawnEvent();
-        // }, 1000);
+        setTimeout(() =>
+        {
+            this.spawnEvent();
+        }, 1000);
     }
 
     private spawnEvent()
@@ -34,10 +36,25 @@ class UpdateSystem
         {
             this.woundUpdater.placeWound();
         }
+        this.hint.displayEvent();
 
         setTimeout(() =>
         {
+            if(!this.state.alive) return;
             this.spawnEvent();
         }, eventTime(this.state.body.age));
+
+        setTimeout(() =>
+        {
+            if(!this.state.alive) return;
+            if(this.state.body.age >= 60)
+            {
+                this.hint.displayMessage();
+            }
+            else
+            {
+                this.hint.displayHint();
+            }
+        }, eventTime(this.state.body.age) / 2);
     }
 }

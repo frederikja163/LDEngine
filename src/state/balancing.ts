@@ -1,6 +1,6 @@
 function eventTime(age: number): number
 {
-    return 1 / age * 500000;
+    return 1 / age * 1000000;
 }
 
 function woundCount(age: number): number

@@ -5,8 +5,6 @@ class WoundUpdater
     public constructor(state: GameState)
     {
         this.state = state;
-
-        setTimeout(() => this.placeWound(), 1000);
     }
 
     public placeWound(): void
@@ -34,7 +32,6 @@ class WoundUpdater
                 const wound: Wound = {pos: pos, connection: vein.startMuscle};
                 this.state.wounds.push(wound);
                 setTimeout(() => this.spawnVirus(wound), Math.random() * 1000 + 2000);
-                setTimeout(() => this.placeWound(), Math.random() * 7000 + 3000);
                 return;
             }
         }
