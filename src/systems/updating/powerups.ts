@@ -25,7 +25,7 @@ class Powerups
                 }
                 selectRandom(wounds).sprite = -1;
                 this.woundCooldown = woundCooldown(state.body.age);
-                document.querySelector("#powerups-wound").lastChild.textContent = "[W] " + this.woundCooldown + "s";
+                document.querySelector("#powerups-wound").lastChild.textContent = "[Q] " + this.woundCooldown + "s";
             }
             else if(ev.key === "w" || ev.key === "W")
             {
@@ -46,7 +46,7 @@ class Powerups
                 }
                 selectRandom(muscles).infected = false;
                 this.disinfectCooldown = disinfectCooldown(state.body.age);
-                document.querySelector("#powerups-disinfect").lastChild.textContent = "[Q] " + this.disinfectCooldown + "s";
+                document.querySelector("#powerups-disinfect").lastChild.textContent = "[W] " + this.disinfectCooldown + "s";
             }
         })
         document.querySelector("#powerups-wound").addEventListener("click", () =>
@@ -67,7 +67,7 @@ class Powerups
             }
             selectRandom(wounds).sprite = -1;
             this.woundCooldown = woundCooldown(state.body.age);
-            document.querySelector("#powerups-wound").lastChild.textContent = "[W] " + this.woundCooldown + "s";
+            document.querySelector("#powerups-wound").lastChild.textContent = "[Q] " + this.woundCooldown + "s";
         });
         document.querySelector("#powerups-disinfect").addEventListener("click", () =>
         {
@@ -88,7 +88,7 @@ class Powerups
             }
             selectRandom(muscles).infected = false;
             this.disinfectCooldown = disinfectCooldown(state.body.age);
-            document.querySelector("#powerups-disinfect").lastChild.textContent = "[Q] " + this.disinfectCooldown + "s";
+            document.querySelector("#powerups-disinfect").lastChild.textContent = "[W] " + this.disinfectCooldown + "s";
         });
         // document.querySelector("#powerups-freeze").addEventListener("click", () =>
         // {
@@ -102,9 +102,9 @@ class Powerups
                 return;
             }
             this.woundCooldown -= this.woundCooldown > 0 ? 1 : 0;
-            document.querySelector("#powerups-wound").lastChild.textContent = "[W] " + this.woundCooldown.toString() + "s";
+            document.querySelector("#powerups-wound").lastChild.textContent = "[Q] " + this.woundCooldown.toString() + "s";
             this.disinfectCooldown -= this.disinfectCooldown > 0 ? 1 : 0;
-            document.querySelector("#powerups-disinfect").lastChild.textContent = "[Q] " + this.disinfectCooldown.toString() + "s";
+            document.querySelector("#powerups-disinfect").lastChild.textContent = "[W] " + this.disinfectCooldown.toString() + "s";
         }, 1000);
     }
 }

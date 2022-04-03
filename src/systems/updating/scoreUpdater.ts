@@ -19,7 +19,6 @@ class ScoreUpdater
             this.highscore = parseInt(highscoreCookie);
         }
 
-        document.querySelector("#name").textContent = "Name: " + state.body.name;
         this.increaseAge();
 
         events.addEventListener(EventTypes.infected, (e: CustomEvent) => this.onInfected(e.detail));

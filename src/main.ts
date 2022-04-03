@@ -18,6 +18,8 @@ function main(): void
     const renderingSystem: RenderingSystem = new RenderingSystem(canvas, state);
     const canvasSize: Vector2 = new Vector2(canvas.clientWidth, canvas.clientHeight);
 
+
+    document.querySelector("#name").textContent = "Name: " + state.body.name;
     document.querySelector("#highscore").textContent = "Highscore: " + getCookie("highscore");
 
     let started: boolean = false;
