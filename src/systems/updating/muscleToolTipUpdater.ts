@@ -9,13 +9,8 @@ class MuscleToolTipUpdater
 
         window.addEventListener("mousemove", (ev: MouseEvent) =>
         {
-            const x = ev.x;
-            const y = ev.y;
-            tooltipElem.style.left = x + "px";
-            tooltipElem.style.top = y + "px";
-
             const muscles: Muscle[] = state.muscles;
-            const mousePos: Vector2 = new Vector2((ev.x / window.innerWidth) * 2 - 1, (-ev.y / window.innerHeight) * 2 + 1);
+            const mousePos: Vector2 = getMousePosition(ev.x, ev.y);
             let closestMuscle: {distSqr: number, muscle: Muscle} = {distSqr: Vector2.sub(muscles[0].pos, mousePos).lengthSqr(), muscle: muscles[0]};
             for(let i: number = 0; i < muscles.length; i++)
             {
@@ -27,10 +22,12 @@ class MuscleToolTipUpdater
                 }
             }
 
-            if(closestMuscle.distSqr <= closestMuscle.muscle.size.lengthSqr())
+            if(closestMuscle.distSqr <= closestMuscle.muscle.size)
             {
                 tooltipElem.textContent = closestMuscle.muscle.name;
                 tooltipElem.style.display = "block";
+                tooltipElem.style.left = ev.x + "px";
+                tooltipElem.style.top = ev.y + "px";
             }
             else
             {

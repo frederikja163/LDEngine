@@ -11,7 +11,7 @@ class BodyRenderer implements IRenderer
         this.state = state;
 
         this.bodySprite = new Sprite(this.renderer, this.state.body.src,
-            new Vector2(0, 0), new Vector2(0.8, 0.8));
+            new Vector2(0, 0), this.state.body.size);
     }
 
     public redraw(): void

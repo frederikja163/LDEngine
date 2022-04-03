@@ -11,6 +11,7 @@ class WoundUpdater
 
     public placeWound(): void
     {
+        if(!this.state.alive) return;
         let thicknessSum = 0;
         for(let i: number = 0; i < this.state.bloodVeins.length; i++)
         {

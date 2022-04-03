@@ -9,7 +9,7 @@ class Renderer
         this.gl = canvas.getContext("webgl2");
 
         this.gl.enable(WebGL2RenderingContext.BLEND);
-        this.gl.blendFunc(WebGL2RenderingContext.SRC_COLOR, WebGL2RenderingContext.DST_COLOR);
+        this.gl.blendFunc(WebGL2RenderingContext.SRC_ALPHA, WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA);
 
         this.resize();
         window.addEventListener("resize", () => this.resize());
@@ -20,6 +20,11 @@ class Renderer
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    public clear(): void
+    {
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     }
 
     public drawLines(vao: VertexArray): void

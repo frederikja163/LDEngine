@@ -15,8 +15,15 @@ class MuscleRenderer implements IRenderer
         {
             const muscle: Muscle = state.muscles[i];
 
-            const normal: Sprite = new Sprite(this.renderer, "images/" + muscle.name + ".png", muscle.pos, muscle.size, muscle.angle);
-            const infected: Sprite = new Sprite(this.renderer, "images/" + muscle.name + " infected.png", muscle.pos, muscle.size, muscle.angle);
+            let size: Vector2 = this.state.body.size;
+            let name: string = muscle.name;
+            if(name.startsWith("Right"))
+            {
+                size = Vector2.mul(size, new Vector2(-1, 1));
+                name = "Left " + name.substring(6);
+            }
+            const normal: Sprite = new Sprite(this.renderer, "images/" + name + ".png", new Vector2(0, 0), size, 0);
+            const infected: Sprite = new Sprite(this.renderer, "images/" + name + " infected.png", new Vector2(0, 0), size, 0);
             this.muscleSprites.push({muscle: muscle, normal: normal, infected: infected});
         }
     }

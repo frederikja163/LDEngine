@@ -1,5 +1,5 @@
-type Muscle = {name: MuscleName, pos: Vector2, size: Vector2, angle: number, infected: boolean, src: string}
-type BodyState = {src: string};
+type Muscle = {name: MuscleName, pos: Vector2, size: number, infected: boolean}
+type BodyState = {src: string, size: Vector2};
 type BloodVein = {startMuscle: MuscleName, stopMuscle: MuscleName, thickness: number}
 // TODO: Maybe allow wounds to connect to other wounds?
 type Wound = {pos: Vector2, connection: MuscleName};
@@ -8,6 +8,7 @@ type VirusState = {src: string, speed: number, size: Vector2};
 
 type GameState = {
     debug: boolean,
+    alive: boolean,
     virusState: VirusState,
     virus: Virus[],
     muscles: Muscle[],
@@ -21,6 +22,11 @@ enum MuscleName
     leftForearm = "Left forearm",
     rightBiscep = "Right biscep",
     leftBiscep = "Left biscep",
+    rightThigh = "Right thigh",
+    leftThigh = "Left thigh",
+    rightCalf = "Right calf",
+    leftCalf = "Left calf",
+    abs = "Abs",
     heart = "Heart",
     brain = "Brain",
 }
@@ -29,6 +35,7 @@ function createGamestate(): GameState
 {
     return {
         debug: true,
+        alive: true,
         virusState: {src: "images/virus.png", speed: 0.0001, size: new Vector2(0.02, 0.02)},
         virus: [],
         bloodVeins: [
@@ -58,6 +65,31 @@ function createGamestate(): GameState
                 thickness: 0.01,
             },
             {
+                startMuscle: MuscleName.rightCalf,
+                stopMuscle: MuscleName.rightThigh,
+                thickness: 0.012,
+            },
+            {
+                startMuscle: MuscleName.rightThigh,
+                stopMuscle: MuscleName.abs,
+                thickness: 0.012,
+            },
+            {
+                startMuscle: MuscleName.leftCalf,
+                stopMuscle: MuscleName.leftThigh,
+                thickness: 0.012,
+            },
+            {
+                startMuscle: MuscleName.leftThigh,
+                stopMuscle: MuscleName.abs,
+                thickness: 0.012,
+            },
+            {
+                startMuscle: MuscleName.abs,
+                stopMuscle: MuscleName.heart,
+                thickness: 0.012,
+            },
+            {
                 startMuscle: MuscleName.heart,
                 stopMuscle: MuscleName.brain,
                 thickness: 0.015,
@@ -67,53 +99,71 @@ function createGamestate(): GameState
         muscles: [
             {
                 name: MuscleName.rightForearm,
-                pos: new Vector2(-0.57, 0.10),
-                size: new Vector2(0.05, 0.075),
-                angle: 40,
-                src: "images/forearm.png",
+                pos: new Vector2(-0.35, 0.00),
+                size: 0.011,
                 infected: false,
             },
             {
                 name: MuscleName.rightBiscep,
-                pos: new Vector2(-0.45, 0.27),
-                size: new Vector2(0.05, 0.075),
-                angle: -55,
-                src: "images/bicep.png",
+                pos: new Vector2(-0.32, 0.32),
+                size: 0.01,
+                infected: false,
+            },
+            {
+                name: MuscleName.rightThigh,
+                pos: new Vector2(-0.18, -0.32),
+                size: 0.02,
+                infected: false,
+            },
+            {
+                name: MuscleName.rightCalf,
+                pos: new Vector2(-0.25, -0.7),
+                size: 0.015,
                 infected: false,
             },
             {
                 name: MuscleName.leftForearm,
-                pos: new Vector2(0.57, 0.10),
-                size: new Vector2(0.05, 0.075),
-                angle: 40 - 90,
-                src: "images/forearm.png",
+                pos: new Vector2(0.35, 0.00),
+                size: 0.011,
                 infected: false,
             },
             {
                 name: MuscleName.leftBiscep,
-                pos: new Vector2(0.45, 0.27),
-                size: new Vector2(0.05, 0.075),
-                angle: -55 + 90,
-                src: "images/bicep.png",
+                pos: new Vector2(0.32, 0.32),
+                size: 0.01,
+                infected: false,
+            },
+            {
+                name: MuscleName.leftThigh,
+                pos: new Vector2(0.18, -0.32),
+                size: 0.02,
+                infected: false,
+            },
+            {
+                name: MuscleName.leftCalf,
+                pos: new Vector2(0.25, -0.7),
+                size: 0.015,
+                infected: false,
+            },
+            {
+                name: MuscleName.abs,
+                pos: new Vector2(0, -0.1),
+                size: 0.01,
                 infected: false,
             },
             {
                 name: MuscleName.heart,
-                pos: new Vector2(0.1, 0.32),
-                size: new Vector2(0.05, 0.05),
-                angle: 0,
-                src: "images/heart.png",
+                pos: new Vector2(0.06, 0.32),
+                size: 0.01,
                 infected: false,
             },
             {
                 name: MuscleName.brain,
-                pos: new Vector2(0, 0.7),
-                size: new Vector2(0.05, 0.05),
-                angle: 0,
-                src: "images/brain.png",
+                pos: new Vector2(0, 0.85),
+                size: 0.01,
                 infected: false,
             },
         ],
-        body: {src: "images/stickman.png"},
+        body: {src: "images/character.png", size: new Vector2(0.95, 0.95)},
     };
 }

@@ -7,16 +7,11 @@ class DebugUpdater
 
     private onClick(ev: MouseEvent): void
     {
-        const mouseX: number = (ev.x / window.innerWidth) * 2 - 1;
-        const mouseY: number = (-ev.y / window.innerHeight) * 2 + 1;
+        const mouse = getMousePosition(ev.x, ev.y);
         // console.log("Mouse click on: (",
         //     mouseX,
         //     ", ",
         //     mouseY, ")");
-        console.log(`new Vector2(${mouseX.toPrecision(2)}, ${mouseY.toPrecision(2)})`);
-    }
-
-    public tick(): void
-    {
+        console.log(`new Vector2(${mouse.x.toPrecision(2)}, ${mouse.y.toPrecision(2)})`);
     }
 }

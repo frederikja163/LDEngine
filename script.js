@@ -1,9 +1,10 @@
 function main() {
     const canvas = document.querySelector("canvas");
+    const events = new Events();
     const state = createGamestate();
     const renderingSystem = new RenderingSystem(canvas, state);
     const canvasSize = new Vector2(canvas.clientWidth, canvas.clientHeight);
-    const updateSystem = new UpdateSystem(state);
+    const updateSystem = new UpdateSystem(state, events);
 }
 window.addEventListener("load", main);
 class Vector1 {
@@ -294,7 +295,7 @@ class Renderer {
         this.canvas = canvas;
         this.gl = canvas.getContext("webgl2");
         this.gl.enable(WebGL2RenderingContext.BLEND);
-        this.gl.blendFunc(WebGL2RenderingContext.SRC_COLOR, WebGL2RenderingContext.DST_COLOR);
+        this.gl.blendFunc(WebGL2RenderingContext.SRC_ALPHA, WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA);
         this.resize();
         window.addEventListener("resize", () => this.resize());
     }
@@ -302,6 +303,9 @@ class Renderer {
         this.canvas.width = this.canvas.clientWidth;
         this.canvas.height = this.canvas.clientHeight;
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    }
+    clear() {
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
     }
     drawLines(vao) {
         vao.bind();
@@ -525,6 +529,8 @@ class Texture {
         image.addEventListener("load", () => {
             this.bind(TextureSlot.texture0);
             this.gl.texImage2D(WebGL2RenderingContext.TEXTURE_2D, 0, WebGL2RenderingContext.RGBA, WebGL2RenderingContext.RGBA, WebGL2RenderingContext.UNSIGNED_BYTE, image);
+            this.gl.texParameteri(WebGL2RenderingContext.TEXTURE_2D, WebGL2RenderingContext.TEXTURE_MAG_FILTER, WebGL2RenderingContext.NEAREST);
+            this.gl.texParameteri(WebGL2RenderingContext.TEXTURE_2D, WebGL2RenderingContext.TEXTURE_MIN_FILTER, WebGL2RenderingContext.NEAREST);
             this.gl.texParameteri(WebGL2RenderingContext.TEXTURE_2D, WebGL2RenderingContext.TEXTURE_WRAP_S, WebGL2RenderingContext.MIRRORED_REPEAT);
             this.gl.texParameteri(WebGL2RenderingContext.TEXTURE_2D, WebGL2RenderingContext.TEXTURE_WRAP_T, WebGL2RenderingContext.MIRRORED_REPEAT);
             this.gl.generateMipmap(WebGL2RenderingContext.TEXTURE_2D);
@@ -617,18 +623,39 @@ class VertexArray {
         VertexArray.boundVertexArray = this.previouslyBoundVertexArray;
     }
 }
+var EventTypes;
+(function (EventTypes) {
+    EventTypes["infected"] = "infected";
+})(EventTypes || (EventTypes = {}));
+class Events {
+    addEventListener(type, callback, options) {
+        window.addEventListener(type, callback, options);
+    }
+    dispatchEvent(event) {
+        return window.dispatchEvent(event);
+    }
+    removeEventListener(type, callback, options) {
+        window.addEventListener(type, callback, options);
+    }
+}
 var MuscleName;
 (function (MuscleName) {
     MuscleName["rightForearm"] = "Right forearm";
     MuscleName["leftForearm"] = "Left forearm";
     MuscleName["rightBiscep"] = "Right biscep";
     MuscleName["leftBiscep"] = "Left biscep";
+    MuscleName["rightThigh"] = "Right thigh";
+    MuscleName["leftThigh"] = "Left thigh";
+    MuscleName["rightCalf"] = "Right calf";
+    MuscleName["leftCalf"] = "Left calf";
+    MuscleName["abs"] = "Abs";
     MuscleName["heart"] = "Heart";
     MuscleName["brain"] = "Brain";
 })(MuscleName || (MuscleName = {}));
 function createGamestate() {
     return {
         debug: true,
+        alive: true,
         virusState: { src: "images/virus.png", speed: 0.0001, size: new Vector2(0.02, 0.02) },
         virus: [],
         bloodVeins: [
@@ -658,6 +685,31 @@ function createGamestate() {
                 thickness: 0.01,
             },
             {
+                startMuscle: MuscleName.rightCalf,
+                stopMuscle: MuscleName.rightThigh,
+                thickness: 0.012,
+            },
+            {
+                startMuscle: MuscleName.rightThigh,
+                stopMuscle: MuscleName.abs,
+                thickness: 0.012,
+            },
+            {
+                startMuscle: MuscleName.leftCalf,
+                stopMuscle: MuscleName.leftThigh,
+                thickness: 0.012,
+            },
+            {
+                startMuscle: MuscleName.leftThigh,
+                stopMuscle: MuscleName.abs,
+                thickness: 0.012,
+            },
+            {
+                startMuscle: MuscleName.abs,
+                stopMuscle: MuscleName.heart,
+                thickness: 0.012,
+            },
+            {
                 startMuscle: MuscleName.heart,
                 stopMuscle: MuscleName.brain,
                 thickness: 0.015,
@@ -667,54 +719,72 @@ function createGamestate() {
         muscles: [
             {
                 name: MuscleName.rightForearm,
-                pos: new Vector2(-0.57, 0.10),
-                size: new Vector2(0.05, 0.075),
-                angle: 40,
-                src: "images/forearm.png",
+                pos: new Vector2(-0.35, 0.00),
+                size: 0.011,
                 infected: false,
             },
             {
                 name: MuscleName.rightBiscep,
-                pos: new Vector2(-0.45, 0.27),
-                size: new Vector2(0.05, 0.075),
-                angle: -55,
-                src: "images/bicep.png",
+                pos: new Vector2(-0.32, 0.32),
+                size: 0.01,
+                infected: false,
+            },
+            {
+                name: MuscleName.rightThigh,
+                pos: new Vector2(-0.18, -0.32),
+                size: 0.02,
+                infected: false,
+            },
+            {
+                name: MuscleName.rightCalf,
+                pos: new Vector2(-0.25, -0.7),
+                size: 0.015,
                 infected: false,
             },
             {
                 name: MuscleName.leftForearm,
-                pos: new Vector2(0.57, 0.10),
-                size: new Vector2(0.05, 0.075),
-                angle: 40 - 90,
-                src: "images/forearm.png",
+                pos: new Vector2(0.35, 0.00),
+                size: 0.011,
                 infected: false,
             },
             {
                 name: MuscleName.leftBiscep,
-                pos: new Vector2(0.45, 0.27),
-                size: new Vector2(0.05, 0.075),
-                angle: -55 + 90,
-                src: "images/bicep.png",
+                pos: new Vector2(0.32, 0.32),
+                size: 0.01,
+                infected: false,
+            },
+            {
+                name: MuscleName.leftThigh,
+                pos: new Vector2(0.18, -0.32),
+                size: 0.02,
+                infected: false,
+            },
+            {
+                name: MuscleName.leftCalf,
+                pos: new Vector2(0.25, -0.7),
+                size: 0.015,
+                infected: false,
+            },
+            {
+                name: MuscleName.abs,
+                pos: new Vector2(0, -0.1),
+                size: 0.01,
                 infected: false,
             },
             {
                 name: MuscleName.heart,
-                pos: new Vector2(0.1, 0.32),
-                size: new Vector2(0.05, 0.05),
-                angle: 0,
-                src: "images/heart.png",
+                pos: new Vector2(0.06, 0.32),
+                size: 0.01,
                 infected: false,
             },
             {
                 name: MuscleName.brain,
-                pos: new Vector2(0, 0.7),
-                size: new Vector2(0.05, 0.05),
-                angle: 0,
-                src: "images/brain.png",
+                pos: new Vector2(0, 0.85),
+                size: 0.01,
                 infected: false,
             },
         ],
-        body: { src: "images/stickman.png" },
+        body: { src: "images/character.png", size: new Vector2(0.95, 0.95) },
     };
 }
 function getVeinMuscle(state, name) {
@@ -741,6 +811,9 @@ function getRandomNeighboor(state, muscle) {
     }
     const index = Math.floor(Math.random() * pair.length);
     return pair[index];
+}
+function getMousePosition(mouseX, mouseY) {
+    return new Vector2((mouseX / window.innerHeight) * 2 - 1, (-mouseY / window.innerHeight) * 2 + 1);
 }
 class BloodVeinRenderer {
     constructor(renderer, state) {
@@ -772,7 +845,7 @@ class BodyRenderer {
     constructor(renderer, state) {
         this.renderer = renderer;
         this.state = state;
-        this.bodySprite = new Sprite(this.renderer, this.state.body.src, new Vector2(0, 0), new Vector2(0.8, 0.8));
+        this.bodySprite = new Sprite(this.renderer, this.state.body.src, new Vector2(0, 0), this.state.body.size);
     }
     redraw() {
         this.renderer.draw(this.bodySprite);
@@ -785,8 +858,14 @@ class MuscleRenderer {
         this.muscleSprites = [];
         for (let i = 0; i < state.muscles.length; i++) {
             const muscle = state.muscles[i];
-            const normal = new Sprite(this.renderer, "images/" + muscle.name + ".png", muscle.pos, muscle.size, muscle.angle);
-            const infected = new Sprite(this.renderer, "images/" + muscle.name + " infected.png", muscle.pos, muscle.size, muscle.angle);
+            let size = this.state.body.size;
+            let name = muscle.name;
+            if (name.startsWith("Right")) {
+                size = Vector2.mul(size, new Vector2(-1, 1));
+                name = "Left " + name.substring(6);
+            }
+            const normal = new Sprite(this.renderer, "images/" + name + ".png", new Vector2(0, 0), size, 0);
+            const infected = new Sprite(this.renderer, "images/" + name + " infected.png", new Vector2(0, 0), size, 0);
             this.muscleSprites.push({ muscle: muscle, normal: normal, infected: infected });
         }
     }
@@ -805,20 +884,24 @@ class MuscleRenderer {
 class RenderingSystem {
     constructor(canvas, state) {
         this.renderer = new Renderer(canvas);
+        this.state = state;
         this.renderers = [
             new BodyRenderer(this.renderer, state),
-            new BloodVeinRenderer(this.renderer, state),
             new MuscleRenderer(this.renderer, state),
+            new BloodVeinRenderer(this.renderer, state),
             new VirusRenderer(this.renderer, state),
         ];
         requestAnimationFrame(() => this.redraw());
     }
     redraw() {
+        this.renderer.clear();
         for (let i = 0; i < this.renderers.length; i++) {
             const renderer = this.renderers[i];
             renderer.redraw();
         }
-        requestAnimationFrame(() => this.redraw());
+        if (this.state.alive) {
+            requestAnimationFrame(() => this.redraw());
+        }
     }
 }
 class TemplateRenderer {
@@ -848,11 +931,8 @@ class DebugUpdater {
         window.addEventListener("click", this.onClick);
     }
     onClick(ev) {
-        const mouseX = (ev.x / window.innerWidth) * 2 - 1;
-        const mouseY = (-ev.y / window.innerHeight) * 2 + 1;
-        console.log(`new Vector2(${mouseX.toPrecision(2)}, ${mouseY.toPrecision(2)})`);
-    }
-    tick() {
+        const mouse = getMousePosition(ev.x, ev.y);
+        console.log(`new Vector2(${mouse.x.toPrecision(2)}, ${mouse.y.toPrecision(2)})`);
     }
 }
 class MuscleToolTipUpdater {
@@ -862,12 +942,8 @@ class MuscleToolTipUpdater {
         tooltipElem.style.display = "none";
         document.body.appendChild(tooltipElem);
         window.addEventListener("mousemove", (ev) => {
-            const x = ev.x;
-            const y = ev.y;
-            tooltipElem.style.left = x + "px";
-            tooltipElem.style.top = y + "px";
             const muscles = state.muscles;
-            const mousePos = new Vector2((ev.x / window.innerWidth) * 2 - 1, (-ev.y / window.innerHeight) * 2 + 1);
+            const mousePos = getMousePosition(ev.x, ev.y);
             let closestMuscle = { distSqr: Vector2.sub(muscles[0].pos, mousePos).lengthSqr(), muscle: muscles[0] };
             for (let i = 0; i < muscles.length; i++) {
                 const muscle = muscles[i];
@@ -876,9 +952,11 @@ class MuscleToolTipUpdater {
                     closestMuscle = { distSqr: distSqr, muscle: muscle };
                 }
             }
-            if (closestMuscle.distSqr <= closestMuscle.muscle.size.lengthSqr()) {
+            if (closestMuscle.distSqr <= closestMuscle.muscle.size) {
                 tooltipElem.textContent = closestMuscle.muscle.name;
                 tooltipElem.style.display = "block";
+                tooltipElem.style.left = ev.x + "px";
+                tooltipElem.style.top = ev.y + "px";
             }
             else {
                 tooltipElem.style.display = "none";
@@ -887,32 +965,37 @@ class MuscleToolTipUpdater {
     }
 }
 class MuscleUpdater {
-    constructor(state) {
+    constructor(state, events) {
         this.state = state;
-        this.infectedMuscles = [];
-        setInterval(() => {
-            for (let i = 0; i < this.state.muscles.length; i++) {
-                const muscle = this.state.muscles[i];
-                if (muscle.infected && !this.infectedMuscles.find(m => m.name === muscle.name)) {
-                    this.infectedMuscles.push(muscle);
-                    this.spawnVirus(muscle);
-                }
-            }
-        }, 1000);
+        events.addEventListener(EventTypes.infected, (e) => this.spawnVirus(e.detail));
     }
     spawnVirus(muscle) {
+        if (!this.state.alive)
+            return;
         const endMuscle = getRandomNeighboor(this.state, muscle);
         this.state.virus.push({ startPos: muscle.pos, endPos: endMuscle.pos, position: 0, endMuscle: endMuscle.name });
         setTimeout(() => this.spawnVirus(muscle), Math.random() * 7000 + 3000);
     }
 }
+class ScoreUpdater {
+    constructor(state, events) {
+        this.state = state;
+        events.addEventListener(EventTypes.infected, (e) => this.onInfected(e.detail));
+    }
+    onInfected(muscle) {
+        if (muscle.name === MuscleName.brain) {
+            this.state.alive = false;
+        }
+    }
+}
 class UpdateSystem {
-    constructor(state) {
+    constructor(state, events) {
         this.updaters = [
             new MuscleToolTipUpdater(state),
             new WoundUpdater(state),
-            new VirusUpdater(state),
-            new MuscleUpdater(state)
+            new VirusUpdater(state, events),
+            new MuscleUpdater(state, events),
+            new ScoreUpdater(state, events),
         ];
         if (state.debug) {
             this.updaters.push(new DebugUpdater());
@@ -920,15 +1003,19 @@ class UpdateSystem {
     }
 }
 class VirusUpdater {
-    constructor(state) {
+    constructor(state, events) {
+        this.mousePos = new Vector2(-1, -1);
         this.state = state;
+        this.events = events;
+        window.addEventListener("mousemove", (ev) => this.onMouseMove(ev));
         window.addEventListener("click", (ev) => this.onClick(ev));
         requestAnimationFrame((t) => this.updateVirus(t));
     }
+    onMouseMove(ev) {
+        this.mousePos = getMousePosition(ev.x, ev.y);
+    }
     onClick(ev) {
-        const mouseX = (ev.x / window.innerWidth) * 2 - 1;
-        const mouseY = (-ev.y / window.innerHeight) * 2 + 1;
-        const mouse = new Vector2(mouseX, mouseY);
+        const mouse = this.mousePos;
         let closestVirus = { distanceSqr: 10000, index: -1 };
         for (let i = 0; i < this.state.virus.length; i++) {
             const virus = this.state.virus[i];
@@ -942,15 +1029,18 @@ class VirusUpdater {
         }
     }
     updateVirus(time) {
+        if (!this.state.alive)
+            return;
         const deltaTime = time - this.lastTime;
         for (let i = 0; i < this.state.virus.length; i++) {
             const virus = this.state.virus[i];
             virus.position += deltaTime * this.state.virusState.speed;
             if (virus.position >= 1) {
                 const muscle = getVeinMuscle(this.state, virus.endMuscle);
-                if (Math.random() >= 0.5) {
+                if (Math.random() >= 0.25) {
                     muscle.infected = true;
-                    this.state.virus.splice(i, 1);
+                    this.state.virus.splice(i++, 1);
+                    this.events.dispatchEvent(new CustomEvent(EventTypes.infected, { detail: muscle }));
                 }
                 else {
                     const endMuscle = getRandomNeighboor(this.state, muscle);
@@ -960,6 +1050,19 @@ class VirusUpdater {
                     virus.startPos = muscle.pos;
                 }
             }
+        }
+        let foundVirus = false;
+        for (let i = 0; i < this.state.virus.length; i++) {
+            const virus = this.state.virus[i];
+            const distSqr = Vector2.sub(this.mousePos, virusGetPosition(virus)).lengthSqr();
+            if (distSqr < this.state.virusState.size.lengthSqr()) {
+                document.body.style.cursor = "pointer";
+                foundVirus = true;
+                break;
+            }
+        }
+        if (!foundVirus) {
+            document.body.style.cursor = "default";
         }
         this.lastTime = time;
         requestAnimationFrame((t) => this.updateVirus(t));
@@ -971,6 +1074,8 @@ class WoundUpdater {
         setTimeout(() => this.placeWound(), 1000);
     }
     placeWound() {
+        if (!this.state.alive)
+            return;
         let thicknessSum = 0;
         for (let i = 0; i < this.state.bloodVeins.length; i++) {
             const vein = this.state.bloodVeins[i];

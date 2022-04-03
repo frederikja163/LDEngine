@@ -34,3 +34,8 @@ function getRandomNeighboor(state: GameState, muscle: Muscle)
     const index: number = Math.floor(Math.random() * pair.length);
     return pair[index];
 }
+
+function getMousePosition(mouseX: number, mouseY: number): Vector2
+{
+    return new Vector2((mouseX / window.innerHeight) * 2 - 1, (-mouseY / window.innerHeight) * 2 + 1);
+}
