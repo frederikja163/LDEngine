@@ -17,6 +17,7 @@ class UpdateSystem
             new VirusUpdater(state, events),
             new MuscleUpdater(state, events),
             new ScoreUpdater(state, events),
+            new Powerups(state),
         ];
 
         if(state.debug)
@@ -47,14 +48,7 @@ class UpdateSystem
         setTimeout(() =>
         {
             if(!this.state.alive) return;
-            if(this.state.body.age >= 60)
-            {
-                this.hint.displayMessage();
-            }
-            else
-            {
-                this.hint.displayHint();
-            }
+            this.hint.displayHint();
         }, eventTime(this.state.body.age) / 2);
     }
 }

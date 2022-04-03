@@ -1,5 +1,6 @@
 class Hint {
     constructor() {
+        this.totalHintCount = 0;
         this.hintElem = document.body.querySelector("#hint");
     }
     displayMessage() {
@@ -12,18 +13,29 @@ class Hint {
             "Woah, you scared me there.",
             "Oh, hello, have you been there the whole time?",
             "My id is fake, my actual name is Frederik",
-            "What's a ludum dare?",
+            "What's a ludum dare?"
         ]);
         setTimeout(() => {
             this.hideHint();
         }, 5000);
     }
     displayHint() {
-        this.hintElem.style.display = "";
-        this.hintElem.textContent = selectRandom(["Hover over me for x-ray vision.",
+        const hints = [
+            "Click the viruses kill them",
+            "Remember to use your powerups effectively.",
             "Hit that little bugger!",
-            "Click the viruses to fend them off!",
-        ]);
+            "The longer the game goes on the older i get",
+            "When i get older you grow weaker",
+            "Powerups gets slower as i age",
+            "How long do i get to live?",
+            "Remember to vote for this game on ludum dare"
+        ];
+        if (this.totalHintCount >= hints.length) {
+            this.displayMessage();
+            return;
+        }
+        this.hintElem.style.display = "";
+        this.hintElem.textContent = hints[this.totalHintCount++];
         setTimeout(() => {
             this.hideHint();
         }, 5000);
@@ -53,7 +65,15 @@ function main() {
     const state = createGamestate();
     const renderingSystem = new RenderingSystem(canvas, state);
     const canvasSize = new Vector2(canvas.clientWidth, canvas.clientHeight);
-    const updateSystem = new UpdateSystem(state, events);
+    document.querySelector("#highscore").textContent = "Highscore: " + getCookie("highscore");
+    let started = false;
+    canvas.addEventListener("click", () => {
+        if (started) {
+            return;
+        }
+        const updateSystem = new UpdateSystem(state, events);
+        started = true;
+    });
 }
 window.addEventListener("load", main);
 class Vector1 {
@@ -678,6 +698,15 @@ function eventTime(age) {
 function woundCount(age) {
     return random(age / 10, age / 10 + 2);
 }
+function ageIncrease(age) {
+    return 1 / age * 1000000;
+}
+function woundCooldown(age) {
+    return Math.floor(Math.max(1, age / 5 - 10));
+}
+function disinfectCooldown(age) {
+    return Math.floor(age / 10);
+}
 var EventTypes;
 (function (EventTypes) {
     EventTypes["infected"] = "infected";
@@ -711,6 +740,10 @@ function createGamestate() {
     return {
         debug: false,
         alive: true,
+        woundConfig: {
+            spriteCount: 3,
+            size: new Vector2(0.05, 0.05)
+        },
         body: {
             src: "images/character.png",
             size: new Vector2(0.95, 0.95),
@@ -991,20 +1024,25 @@ class RenderingSystem {
         this.alwaysOn = [
             new BodyRenderer(this.renderer, state),
         ];
+        this.woundRenderer = new WoundRenderer(this.renderer, state);
         this.renderers = [
             new MuscleRenderer(this.renderer, state),
             new BloodVeinRenderer(this.renderer, state),
             new VirusRenderer(this.renderer, state),
         ];
-        canvas.addEventListener("mouseenter", (ev) => {
-            this.isOverlayActive = true;
-        });
-        canvas.addEventListener("mouseleave", (ev) => {
-            this.isOverlayActive = false;
-        });
+        canvas.addEventListener("mouseenter", (ev) => this.enableOverlay());
+        canvas.addEventListener("mouseleave", (ev) => this.disableOverlay());
+        document.querySelector("#powerups").addEventListener("mouseenter", (ev) => this.enableOverlay());
+        document.querySelector("#powerups").addEventListener("mouseleave", (ev) => this.disableOverlay());
         setTimeout(() => {
             requestAnimationFrame(() => this.redraw());
         }, 100);
+    }
+    enableOverlay() {
+        this.isOverlayActive = true;
+    }
+    disableOverlay() {
+        this.isOverlayActive = false;
     }
     redraw() {
         this.renderer.clear();
@@ -1018,9 +1056,8 @@ class RenderingSystem {
                 renderer.redraw();
             }
         }
+        this.woundRenderer.redraw();
         requestAnimationFrame(() => this.redraw());
-        if (this.state.alive) {
-        }
     }
 }
 class TemplateRenderer {
@@ -1042,6 +1079,27 @@ class VirusRenderer {
             const virus = this.state.virus[i];
             this.sprite.pos = virusGetPosition(virus);
             this.renderer.draw(this.sprite);
+        }
+    }
+}
+class WoundRenderer {
+    constructor(renderer, state) {
+        this.renderer = renderer;
+        this.state = state;
+        this.sprites = [];
+        for (let i = 0; i < this.state.woundConfig.spriteCount; i++) {
+            this.sprites.push(new Sprite(this.renderer, `images/wounds/wound${i + 1}.png`, new Vector2(0, 0), this.state.woundConfig.size, 0));
+        }
+    }
+    redraw() {
+        for (let i = 0; i < this.state.wounds.length; i++) {
+            const wound = this.state.wounds[i];
+            if (wound.sprite === -1) {
+                continue;
+            }
+            const sprite = this.sprites[wound.sprite];
+            sprite.pos = wound.pos;
+            this.renderer.draw(sprite);
         }
     }
 }
@@ -1092,17 +1150,66 @@ class MuscleUpdater {
         events.addEventListener(EventTypes.infected, (e) => this.spawnVirus(e.detail));
     }
     spawnVirus(muscle) {
-        if (!this.state.alive)
+        if (!this.state.alive || !muscle.infected)
             return;
         const endMuscle = getRandomNeighboor(this.state, muscle);
         this.state.virus.push({ startPos: muscle.pos, endPos: endMuscle.pos, position: 0, endMuscle: endMuscle.name });
         setTimeout(() => this.spawnVirus(muscle), Math.random() * 7000 + 3000);
     }
 }
+class Powerups {
+    constructor(state) {
+        this.woundCooldown = 0;
+        this.disinfectCooldown = 0;
+        document.querySelector("#powerups-wound").addEventListener("click", () => {
+            if (!state.alive || this.woundCooldown != 0)
+                return;
+            const wounds = [];
+            for (let i = 0; i < state.wounds.length; i++) {
+                if (state.wounds[i].sprite != -1) {
+                    wounds.push(state.wounds[i]);
+                }
+            }
+            if (wounds.length == 0) {
+                return;
+            }
+            selectRandom(wounds).sprite = -1;
+            this.woundCooldown = woundCooldown(state.body.age);
+            document.querySelector("#powerups-wound").lastChild.textContent = this.woundCooldown.toString();
+        });
+        document.querySelector("#powerups-disinfect").addEventListener("click", () => {
+            if (!state.alive || this.disinfectCooldown != 0)
+                return;
+            const muscles = [];
+            for (let i = 0; i < state.muscles.length; i++) {
+                if (state.muscles[i].infected) {
+                    muscles.push(state.muscles[i]);
+                }
+            }
+            if (muscles.length == 0) {
+                return;
+            }
+            selectRandom(muscles).infected = false;
+            this.disinfectCooldown = disinfectCooldown(state.body.age);
+            document.querySelector("#powerups-disinfect").lastChild.textContent = this.disinfectCooldown.toString();
+        });
+        const interval = setInterval(() => {
+            if (!state.alive) {
+                clearInterval(interval);
+                return;
+            }
+            this.woundCooldown -= this.woundCooldown > 0 ? 1 : 0;
+            document.querySelector("#powerups-wound").lastChild.textContent = this.woundCooldown.toString();
+            this.disinfectCooldown -= this.disinfectCooldown > 0 ? 1 : 0;
+            document.querySelector("#powerups-disinfect").lastChild.textContent = this.disinfectCooldown.toString();
+        }, 1000);
+    }
+}
 class ScoreUpdater {
     constructor(state, events) {
         this.highscore = 0;
         this.state = state;
+        this.events = events;
         const highscoreCookie = getCookie("highscore");
         if (highscoreCookie === "") {
             this.highscore = 0;
@@ -1111,7 +1218,6 @@ class ScoreUpdater {
             this.highscore = parseInt(highscoreCookie);
         }
         document.querySelector("#name").textContent = "Name: " + state.body.name;
-        document.querySelector("#highscore").textContent = "Highscore: " + this.highscore;
         this.increaseAge();
         events.addEventListener(EventTypes.infected, (e) => this.onInfected(e.detail));
     }
@@ -1128,7 +1234,7 @@ class ScoreUpdater {
             return;
         this.state.body.age += 1;
         document.querySelector("#age").textContent = "Age: " + this.state.body.age;
-        setTimeout(() => this.increaseAge(), 30000);
+        setTimeout(() => this.increaseAge(), ageIncrease(this.state.body.age));
     }
 }
 class UpdateSystem {
@@ -1142,6 +1248,7 @@ class UpdateSystem {
             new VirusUpdater(state, events),
             new MuscleUpdater(state, events),
             new ScoreUpdater(state, events),
+            new Powerups(state),
         ];
         if (state.debug) {
             this.updaters.push(new DebugUpdater());
@@ -1163,12 +1270,7 @@ class UpdateSystem {
         setTimeout(() => {
             if (!this.state.alive)
                 return;
-            if (this.state.body.age >= 60) {
-                this.hint.displayMessage();
-            }
-            else {
-                this.hint.displayHint();
-            }
+            this.hint.displayHint();
         }, eventTime(this.state.body.age) / 2);
     }
 }
@@ -1262,7 +1364,7 @@ class WoundUpdater {
                 const len = Math.random() * 0.05 + 0.05;
                 const muscle = getVeinMuscle(this.state, vein.startMuscle);
                 const pos = Vector2.add(muscle.pos, new Vector2(Math.cos(angle) * len, Math.sin(angle) * len));
-                const wound = { pos: pos, connection: vein.startMuscle };
+                const wound = { pos: pos, connection: vein.startMuscle, sprite: Math.floor(Math.random() * this.state.woundConfig.spriteCount) };
                 this.state.wounds.push(wound);
                 setTimeout(() => this.spawnVirus(wound), Math.random() * 1000 + 2000);
                 return;
@@ -1270,7 +1372,7 @@ class WoundUpdater {
         }
     }
     spawnVirus(wound) {
-        if (!this.state.alive)
+        if (!this.state.alive || wound.sprite === -1)
             return;
         const muscle = getVeinMuscle(this.state, wound.connection);
         this.state.virus.push({ startPos: wound.pos, endPos: muscle.pos, position: 0, endMuscle: muscle.name });

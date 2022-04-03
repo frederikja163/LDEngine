@@ -11,7 +11,7 @@ class MuscleUpdater
 
     public spawnVirus(muscle: Muscle): void
     {
-        if(!this.state.alive) return;
+        if(!this.state.alive || !muscle.infected) return;
 
         const endMuscle = getRandomNeighboor(this.state, muscle);
         this.state.virus.push({startPos: muscle.pos, endPos: endMuscle.pos, position: 0, endMuscle: endMuscle.name});

@@ -1,6 +1,7 @@
 class Hint
 {
     private readonly hintElem: HTMLElement;
+    private totalHintCount: number = 0;
 
     public constructor()
     {
@@ -18,7 +19,7 @@ class Hint
             "Woah, you scared me there.",
             "Oh, hello, have you been there the whole time?",
             "My id is fake, my actual name is Frederik",
-            "What's a ludum dare?",
+            "What's a ludum dare?"
         ]);
 
         setTimeout(() =>
@@ -29,11 +30,23 @@ class Hint
 
     public displayHint(): void
     {
-        this.hintElem.style.display = "";
-        this.hintElem.textContent = selectRandom(["Hover over me for x-ray vision.",
+        const hints = [
+            "Click the viruses kill them",
+            "Remember to use your powerups effectively.",
             "Hit that little bugger!",
-            "Click the viruses to fend them off!",
-        ]);
+            "The longer the game goes on the older i get",
+            "When i get older you grow weaker",
+            "Powerups gets slower as i age",
+            "How long do i get to live?",
+            "Remember to vote for this game on ludum dare"
+        ];
+        if(this.totalHintCount >= hints.length)
+        {
+            this.displayMessage();
+            return;
+        }
+        this.hintElem.style.display = "";
+        this.hintElem.textContent = hints[this.totalHintCount++];
 
         setTimeout(() =>
         {

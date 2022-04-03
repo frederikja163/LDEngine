@@ -29,8 +29,9 @@ class WoundUpdater
                 const muscle: Muscle = getVeinMuscle(this.state, vein.startMuscle);
                 const pos = Vector2.add(muscle.pos, new Vector2(Math.cos(angle) * len, Math.sin(angle) * len));
 
-                const wound: Wound = {pos: pos, connection: vein.startMuscle};
+                const wound: Wound = {pos: pos, connection: vein.startMuscle, sprite: Math.floor(Math.random() * this.state.woundConfig.spriteCount)};
                 this.state.wounds.push(wound);
+                // TODO: Base this cooldown on age.
                 setTimeout(() => this.spawnVirus(wound), Math.random() * 1000 + 2000);
                 return;
             }
@@ -39,9 +40,10 @@ class WoundUpdater
 
     private spawnVirus(wound: Wound): void
     {
-        if(!this.state.alive) return;
+        if(!this.state.alive || wound.sprite === -1) return;
         const muscle: Muscle = getVeinMuscle(this.state, wound.connection);
         this.state.virus.push({startPos: wound.pos, endPos: muscle.pos, position: 0, endMuscle: muscle.name});
+        // TODO: Base this cooldown on age.
         setTimeout(() => this.spawnVirus(wound), Math.random() * 3000 + 2000);
     }
 }

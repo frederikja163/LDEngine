@@ -1,5 +1,4 @@
 #license {
-    width: em;
     height: 10em;
     background-color: white;
     position: absolute;
@@ -9,7 +8,8 @@
     flex-direction: row;
     font-family: slkscr;
     color: black;
-    border: 5px solid blue;
+    /* border: 5px solid blue; */
+    border-radius: 0 0 0 1em;
     border-top-width: 0;
     border-right-width: 0;
 }

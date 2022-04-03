@@ -17,7 +17,20 @@ function main(): void
     const state: GameState = createGamestate();
     const renderingSystem: RenderingSystem = new RenderingSystem(canvas, state);
     const canvasSize: Vector2 = new Vector2(canvas.clientWidth, canvas.clientHeight);
-    const updateSystem: UpdateSystem = new UpdateSystem(state, events);
+
+    document.querySelector("#highscore").textContent = "Highscore: " + getCookie("highscore");
+
+    let started: boolean = false;
+    canvas.addEventListener("click", () =>
+    {
+        if(started)
+        {
+            return;
+        }
+        const updateSystem: UpdateSystem = new UpdateSystem(state, events);
+        started = true;
+
+    })
 }
 
 window.addEventListener("load", main);

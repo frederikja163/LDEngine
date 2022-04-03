@@ -7,6 +7,7 @@ class RenderingSystem
 {
     private readonly renderers: IRenderer[];
     private readonly alwaysOn: IRenderer[];
+    private readonly woundRenderer: IRenderer;
     private readonly renderer: Renderer;
     private readonly state: GameState;
     private isOverlayActive: boolean = false;
@@ -19,6 +20,7 @@ class RenderingSystem
         this.alwaysOn = [
             new BodyRenderer(this.renderer, state),
         ];
+        this.woundRenderer = new WoundRenderer(this.renderer, state);
 
         this.renderers = [
             new MuscleRenderer(this.renderer, state),
@@ -26,19 +28,24 @@ class RenderingSystem
             new VirusRenderer(this.renderer, state),
         ];
 
-        canvas.addEventListener("mouseenter", (ev) =>
-        {
-            this.isOverlayActive = true;
-        });
-        canvas.addEventListener("mouseleave", (ev) =>
-        {
-            this.isOverlayActive = false;
-        });
+        canvas.addEventListener("mouseenter", (ev) => this.enableOverlay());
+        canvas.addEventListener("mouseleave", (ev) => this.disableOverlay());
+        document.querySelector("#powerups").addEventListener("mouseenter", (ev) => this.enableOverlay());
+        document.querySelector("#powerups").addEventListener("mouseleave", (ev) => this.disableOverlay());
 
         setTimeout(() =>
         {
             requestAnimationFrame(() => this.redraw());
         }, 100);
+    }
+
+    private enableOverlay(): void
+    {
+        this.isOverlayActive = true;
+    }
+    private disableOverlay(): void
+    {
+        this.isOverlayActive = false;
     }
 
     private redraw(): void
@@ -57,9 +64,7 @@ class RenderingSystem
                 renderer.redraw();
             }
         }
+        this.woundRenderer.redraw();
         requestAnimationFrame(() => this.redraw());
-        if(this.state.alive)
-        {
-        }
     }
 }

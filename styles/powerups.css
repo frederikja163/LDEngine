@@ -1,0 +1,29 @@
+#powerups {
+    height: 32px + 1em;
+    background-color: white;
+    position: absolute;
+    right: 0;
+    top: 9.9em;
+    display: flex;
+    flex-direction: row;
+    font-family: slkscr;
+    color: black;
+    border: 5px solid white;
+    border-radius: 0 0 0 0.5em;
+}
+
+#powerups img {
+    width: 32px;
+    height: 32px;
+}
+
+#powerups button {
+    background-color: white;
+    margin: 1em;
+    display: flex;
+    flex-direction: column;
+}
+
+#powerups button:hover {
+    cursor: pointer;
+}

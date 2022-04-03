@@ -2,13 +2,15 @@ type Muscle = {name: MuscleName, pos: Vector2, size: number, infected: boolean}
 type BodyState = {src: string, size: Vector2, name: string, age: number};
 type BloodVein = {startMuscle: MuscleName, stopMuscle: MuscleName, thickness: number}
 // TODO: Maybe allow wounds to connect to other wounds?
-type Wound = {pos: Vector2, connection: MuscleName};
+type Wound = {pos: Vector2, connection: MuscleName, sprite: number};
 type Virus = {startPos: Vector2, endPos: Vector2, position: number, endMuscle: MuscleName};
 type VirusState = {src: string, speed: number, size: Vector2};
+type WoundConfig = {size: Vector2, spriteCount: number};
 
 type GameState = {
     debug: boolean,
     alive: boolean,
+    woundConfig: WoundConfig,
     virusState: VirusState,
     virus: Virus[],
     muscles: Muscle[],
@@ -36,6 +38,10 @@ function createGamestate(): GameState
     return {
         debug: false,
         alive: true,
+        woundConfig: {
+            spriteCount: 3,
+            size: new Vector2(0.05, 0.05)
+        },
         body: {
             src: "images/character.png",
             size: new Vector2(0.95, 0.95),
