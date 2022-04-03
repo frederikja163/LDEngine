@@ -1,16 +1,17 @@
 class MuscleToolTipUpdater
 {
+    private readonly tooltipElem: HTMLDivElement;
     constructor(state: GameState)
     {
-        const tooltipElem: HTMLDivElement = document.createElement("div");
-        tooltipElem.id = "tooltip";
-        tooltipElem.style.display = "none";
-        document.body.appendChild(tooltipElem);
+        this.tooltipElem = document.createElement("div");
+        this.tooltipElem.id = "tooltip";
+        this.tooltipElem.style.display = "none";
+        document.body.appendChild(this.tooltipElem);
 
         window.addEventListener("click", () =>
         {
             document.getSelection().removeAllRanges();
-        })
+        });
 
         window.addEventListener("mousemove", (ev: MouseEvent) =>
         {
@@ -29,15 +30,25 @@ class MuscleToolTipUpdater
 
             if(closestMuscle.distSqr <= closestMuscle.muscle.size)
             {
-                tooltipElem.textContent = closestMuscle.muscle.name;
-                tooltipElem.style.display = "block";
-                tooltipElem.style.left = ev.x + "px";
-                tooltipElem.style.top = ev.y + "px";
+                this.displayTooltip(closestMuscle.muscle.name, ev.x, ev.y);
             }
             else
             {
-                tooltipElem.style.display = "none";
+                this.hideTooltip();
             }
         });
+    }
+
+    private displayTooltip(message: string, x: number, y: number): void
+    {
+        this.tooltipElem.textContent = message;
+        this.tooltipElem.style.display = "block";
+        this.tooltipElem.style.left = x + "px";
+        this.tooltipElem.style.top = y + "px";
+    }
+
+    private hideTooltip(): void
+    {
+        this.tooltipElem.style.display = "none";
     }
 }

@@ -12,7 +12,7 @@ class Hint {
             "I wonder how long i can stay alive for.",
             "Woah, you scared me there.",
             "Oh, hello, have you been there the whole time?",
-            "My id is fake, my actual name is Frederik",
+            "My id is fake, my actual name is Dave",
             "What's a ludum dare?"
         ]);
         setTimeout(() => {
@@ -21,8 +21,10 @@ class Hint {
     }
     displayHint() {
         const hints = [
-            "Click the viruses kill them",
-            "Remember to use your powerups effectively.",
+            "Click the viruses to kill them",
+            "View your powerups on the right of the screen.",
+            "Press Q to heal your wounds.",
+            "W will disinfect a muscle.",
             "Hit that little bugger!",
             "The longer the game goes on the older i get",
             "When i get older you grow weaker",
@@ -1114,10 +1116,10 @@ class DebugUpdater {
 }
 class MuscleToolTipUpdater {
     constructor(state) {
-        const tooltipElem = document.createElement("div");
-        tooltipElem.id = "tooltip";
-        tooltipElem.style.display = "none";
-        document.body.appendChild(tooltipElem);
+        this.tooltipElem = document.createElement("div");
+        this.tooltipElem.id = "tooltip";
+        this.tooltipElem.style.display = "none";
+        document.body.appendChild(this.tooltipElem);
         window.addEventListener("click", () => {
             document.getSelection().removeAllRanges();
         });
@@ -1133,15 +1135,21 @@ class MuscleToolTipUpdater {
                 }
             }
             if (closestMuscle.distSqr <= closestMuscle.muscle.size) {
-                tooltipElem.textContent = closestMuscle.muscle.name;
-                tooltipElem.style.display = "block";
-                tooltipElem.style.left = ev.x + "px";
-                tooltipElem.style.top = ev.y + "px";
+                this.displayTooltip(closestMuscle.muscle.name, ev.x, ev.y);
             }
             else {
-                tooltipElem.style.display = "none";
+                this.hideTooltip();
             }
         });
+    }
+    displayTooltip(message, x, y) {
+        this.tooltipElem.textContent = message;
+        this.tooltipElem.style.display = "block";
+        this.tooltipElem.style.left = x + "px";
+        this.tooltipElem.style.top = y + "px";
+    }
+    hideTooltip() {
+        this.tooltipElem.style.display = "none";
     }
 }
 class MuscleUpdater {
@@ -1161,6 +1169,40 @@ class Powerups {
     constructor(state) {
         this.woundCooldown = 0;
         this.disinfectCooldown = 0;
+        window.addEventListener("keydown", (ev) => {
+            if (ev.key === "q" || ev.key === "Q") {
+                if (!state.alive || this.woundCooldown != 0)
+                    return;
+                const wounds = [];
+                for (let i = 0; i < state.wounds.length; i++) {
+                    if (state.wounds[i].sprite != -1) {
+                        wounds.push(state.wounds[i]);
+                    }
+                }
+                if (wounds.length == 0) {
+                    return;
+                }
+                selectRandom(wounds).sprite = -1;
+                this.woundCooldown = woundCooldown(state.body.age);
+                document.querySelector("#powerups-wound").lastChild.textContent = "[W] " + this.woundCooldown + "s";
+            }
+            else if (ev.key === "w" || ev.key === "W") {
+                if (!state.alive || this.disinfectCooldown != 0)
+                    return;
+                const muscles = [];
+                for (let i = 0; i < state.muscles.length; i++) {
+                    if (state.muscles[i].infected) {
+                        muscles.push(state.muscles[i]);
+                    }
+                }
+                if (muscles.length == 0) {
+                    return;
+                }
+                selectRandom(muscles).infected = false;
+                this.disinfectCooldown = disinfectCooldown(state.body.age);
+                document.querySelector("#powerups-disinfect").lastChild.textContent = "[Q] " + this.disinfectCooldown + "s";
+            }
+        });
         document.querySelector("#powerups-wound").addEventListener("click", () => {
             if (!state.alive || this.woundCooldown != 0)
                 return;
@@ -1175,7 +1217,7 @@ class Powerups {
             }
             selectRandom(wounds).sprite = -1;
             this.woundCooldown = woundCooldown(state.body.age);
-            document.querySelector("#powerups-wound").lastChild.textContent = this.woundCooldown.toString();
+            document.querySelector("#powerups-wound").lastChild.textContent = "[W] " + this.woundCooldown + "s";
         });
         document.querySelector("#powerups-disinfect").addEventListener("click", () => {
             if (!state.alive || this.disinfectCooldown != 0)
@@ -1191,7 +1233,7 @@ class Powerups {
             }
             selectRandom(muscles).infected = false;
             this.disinfectCooldown = disinfectCooldown(state.body.age);
-            document.querySelector("#powerups-disinfect").lastChild.textContent = this.disinfectCooldown.toString();
+            document.querySelector("#powerups-disinfect").lastChild.textContent = "[Q] " + this.disinfectCooldown + "s";
         });
         const interval = setInterval(() => {
             if (!state.alive) {
@@ -1199,9 +1241,9 @@ class Powerups {
                 return;
             }
             this.woundCooldown -= this.woundCooldown > 0 ? 1 : 0;
-            document.querySelector("#powerups-wound").lastChild.textContent = this.woundCooldown.toString();
+            document.querySelector("#powerups-wound").lastChild.textContent = "[W] " + this.woundCooldown.toString() + "s";
             this.disinfectCooldown -= this.disinfectCooldown > 0 ? 1 : 0;
-            document.querySelector("#powerups-disinfect").lastChild.textContent = this.disinfectCooldown.toString();
+            document.querySelector("#powerups-disinfect").lastChild.textContent = "[Q] " + this.disinfectCooldown.toString() + "s";
         }, 1000);
     }
 }
