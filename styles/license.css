@@ -1,0 +1,30 @@
+#license {
+    height: 10em;
+    background-color: white;
+    position: absolute;
+    right: 0;
+    top: 0;
+    display: flex;
+    flex-direction: row;
+    font-family: slkscr;
+    color: black;
+    /* border: 5px solid blue; */
+    border-radius: 0 0 0 1em;
+    border-top-width: 0;
+    border-right-width: 0;
+}
+
+#photo img {
+    width: 90%;
+    height: 90%;
+    margin: 5%;
+}
+
+#license p {
+    margin: 0.1em;
+}
+
+#license h1 {
+    font-size: 2em;
+    margin: 0.2em;
+}

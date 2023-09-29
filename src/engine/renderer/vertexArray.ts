@@ -14,6 +14,7 @@ class VertexArray
 
     private readonly gl: WebGL2RenderingContext;
     private readonly handle: WebGLVertexArrayObject;
+    public elementBuffer: ElementBuffer;
     private readonly shader: Shader;
 
     public constructor(renderer: Renderer, elementBuffer: ElementBuffer, shader: Shader)
@@ -22,6 +23,13 @@ class VertexArray
         this.shader = shader;
 
         this.handle = this.gl.createVertexArray();
+
+        this.updateElementBuffer(elementBuffer);
+    }
+
+    public updateElementBuffer(elementBuffer: ElementBuffer)
+    {
+        this.elementBuffer = elementBuffer;
 
         this.bind();
         elementBuffer.bind();
@@ -60,12 +68,19 @@ class VertexArray
                 break;
         }
 
+        let stride: number = 0;
         for(let i: number = 0; i < attributes.length; i++)
         {
             const attribute = attributes[i];
-            const uniformLocation: number = this.shader.getUniformLocation(attribute.name) as number;
+            stride += attribute.count * typeSize;
+        }
+
+        for(let i: number = 0; i < attributes.length; i++)
+        {
+            const attribute = attributes[i];
+            const uniformLocation: number = this.shader.getAttributeLocation(attribute.name) as number;
             gl.enableVertexAttribArray(uniformLocation);
-            gl.vertexAttribPointer(uniformLocation, attribute.count, type, false, 0, offset);
+            gl.vertexAttribPointer(uniformLocation, attribute.count, type, false, stride, offset);
 
             offset += typeSize * attribute.count;
         }
@@ -77,6 +92,7 @@ class VertexArray
     public bind(): void
     {
         this.gl.bindVertexArray(this.handle);
+        this.shader.bind();
 
         this.previouslyBoundVertexArray = VertexArray.boundVertexArray;
         VertexArray.boundVertexArray = this;
@@ -84,6 +100,7 @@ class VertexArray
 
     public unbind(): void
     {
+        this.shader.unbind();
         this.gl.bindVertexArray(this.previouslyBoundVertexArray?.handle ?? null);
 
         VertexArray.boundVertexArray = this.previouslyBoundVertexArray;

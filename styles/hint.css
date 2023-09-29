@@ -1,0 +1,10 @@
+#hint {
+    font-family: slkscr;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%);
+    background-color: white;
+    position: absolute;
+    color: black;
+    padding: 1em;
+    left: 0%;
+    top: 0%;
+}
